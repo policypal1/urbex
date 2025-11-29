@@ -18,8 +18,10 @@
   <!-- Full-screen map -->
   <div class="h-screen w-screen relative overflow-hidden">
     <div class="absolute inset-0">
+      <!-- Start centered on Salem; JS will change this src as you add/click spots -->
       <iframe
-        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d90383.21730787378!2d-123.11146259914275!3d44.93399995020513!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x54bffefcbc4b9c63%3A0xf93429e08f0357c2!2sSalem%2C%20OR!5e0!3m2!1sen!2sus!4v1764399473241!5m2!1sen!2sus"
+        id="map-frame"
+        src="https://www.google.com/maps?q=Salem%2C%20OR&output=embed"
         class="urbex-map-iframe"
         allowfullscreen=""
         loading="lazy"
@@ -45,10 +47,39 @@
         <section class="p-4 border-b border-slate-800">
           <h2 class="text-base md:text-lg font-semibold mb-1">Add a spot</h2>
           <p class="text-[11px] text-slate-400 mb-3">
-            Find it on the map, copy the address/coords or share link from Google Maps, then fill this in.
+            Find it on the map, copy the address/coords or a Maps link, then fill this in.
           </p>
 
           <form id="spot-form" class="flex flex-col gap-2">
+            <!-- Visit status -->
+            <div>
+              <p class="block text-xs text-slate-300 mb-1">Visit status</p>
+              <div class="flex gap-1 text-[11px]">
+                <button type="button" class="yn-chip yn-active" data-group="status" data-value="to_go">
+                  Place to go
+                </button>
+                <button type="button" class="yn-chip" data-group="status" data-value="been">
+                  Place I’ve been
+                </button>
+              </div>
+              <input type="hidden" id="spot-status" value="to_go" />
+            </div>
+
+            <!-- Type of explore -->
+            <div>
+              <label class="block text-xs text-slate-300 mb-1">Type of explore</label>
+              <select
+                id="spot-explore"
+                class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
+              >
+                <option value="roofing">Roofing</option>
+                <option value="urbex">Abandoned building (urbex)</option>
+                <option value="tunnel">Tunnel / drain</option>
+                <option value="rooftop_crane">Rooftop + crane</option>
+                <option value="other">Other / mixed</option>
+              </select>
+            </div>
+
             <div>
               <label class="block text-xs text-slate-300 mb-1">Name</label>
               <input
@@ -91,10 +122,10 @@
               <div>
                 <p class="mb-1 text-slate-300">Security / cameras</p>
                 <div class="flex gap-1">
-                  <button type="button" class="yn-chip yn-yes" data-group="security" data-value="yes">
+                  <button type="button" class="yn-chip" data-group="security" data-value="yes">
                     Yes
                   </button>
-                  <button type="button" class="yn-chip yn-no yn-active" data-group="security" data-value="no">
+                  <button type="button" class="yn-chip yn-active" data-group="security" data-value="no">
                     No / unknown
                   </button>
                 </div>
@@ -102,10 +133,10 @@
               <div>
                 <p class="mb-1 text-slate-300">Squatters</p>
                 <div class="flex gap-1">
-                  <button type="button" class="yn-chip yn-yes" data-group="squatters" data-value="yes">
+                  <button type="button" class="yn-chip" data-group="squatters" data-value="yes">
                     Yes / likely
                   </button>
-                  <button type="button" class="yn-chip yn-no yn-active" data-group="squatters" data-value="no">
+                  <button type="button" class="yn-chip yn-active" data-group="squatters" data-value="no">
                     No / unlikely
                   </button>
                 </div>
@@ -121,7 +152,7 @@
                 id="spot-notes"
                 rows="2"
                 class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
-                placeholder="Access, vibe, hazards, good time to go..."
+                placeholder="Access, vibe, hazards, best time to go..."
               ></textarea>
             </div>
 
@@ -163,7 +194,7 @@
           </div>
 
           <p class="text-[10px] text-slate-500 mt-2">
-            Saved only in this browser (localStorage). Click “Open in Maps” on a spot to jump to it.
+            Saved only in this browser (localStorage). Click a spot’s “Show on map” or “Open in Maps”.
           </p>
         </section>
       </div>
