@@ -5,199 +5,169 @@
   <title>Urbex Log · Salem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Tailwind for layout -->
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
 
   <!-- Custom styles -->
   <link rel="stylesheet" href="style.css" />
 
-  <!-- App logic (no Google Maps API needed) -->
+  <!-- App logic -->
   <script defer src="main.js"></script>
 </head>
-<body class="h-full bg-slate-950 text-slate-100">
-  <div class="min-h-screen flex flex-col">
-    <!-- Header -->
-    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur">
-      <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-        <div>
-          <h1 class="text-xl md:text-2xl font-bold tracking-tight">
-            Urbex Log · Salem
-          </h1>
-          <p class="text-xs md:text-sm text-slate-400">
-            Private urbex notes around Salem / Oregon. 
-          </p>
-        </div>
-        </span>
-      </div>
+<body class="bg-slate-950 text-slate-100">
+  <!-- Full-screen map -->
+  <div class="h-screen w-screen relative overflow-hidden">
+    <div class="absolute inset-0">
+      <iframe
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d90383.21730787378!2d-123.11146259914275!3d44.93399995020513!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x54bffefcbc4b9c63%3A0xf93429e08f0357c2!2sSalem%2C%20OR!5e0!3m2!1sen!2sus!4v1764399473241!5m2!1sen!2sus"
+        class="urbex-map-iframe"
+        allowfullscreen=""
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+      ></iframe>
+    </div>
+
+    <!-- Top banner -->
+    <header class="absolute top-3 left-1/2 -translate-x-1/2 z-10 px-4 py-2 rounded-full bg-slate-900/85 border border-slate-700 shadow-lg flex items-center gap-3 text-xs md:text-sm">
+      <span class="font-semibold">Urbex Log · Salem</span>
+      <span class="text-slate-400 hidden md:inline">
+        Private notes only — no trespassing, no breaking in.
+      </span>
+      <span class="ml-auto text-[10px] px-2 py-0.5 rounded-full border border-amber-400/60 text-amber-200 bg-amber-500/10">
+        ⚠️ Stay legal & safe
+      </span>
     </header>
 
-    <!-- Main layout -->
-    <main class="flex-1">
-      <div class="max-w-6xl mx-auto px-4 py-4 h-full">
-        <div class="flex flex-col md:flex-row gap-4 h-[calc(100vh-6rem)] md:h-[72vh]">
+    <!-- Right-side panel -->
+    <aside class="absolute top-20 right-4 bottom-4 w-full max-w-sm z-10">
+      <div class="h-full bg-slate-900/90 border border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+        <!-- Form -->
+        <section class="p-4 border-b border-slate-800">
+          <h2 class="text-base md:text-lg font-semibold mb-1">Add a spot</h2>
+          <p class="text-[11px] text-slate-400 mb-3">
+            Find it on the map, copy the address/coords or share link from Google Maps, then fill this in.
+          </p>
 
-          <!-- Map (embed) -->
-          <div class="flex-1 bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-lg">
-            <div class="map-embed-wrapper">
-              <!-- Your embed map, just with a class -->
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d90383.21730787378!2d-123.11146259914275!3d44.93399995020513!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x54bffefcbc4b9c63%3A0xf93429e08f0357c2!2sSalem%2C%20OR!5e0!3m2!1sen!2sus!4v1764399473241!5m2!1sen!2sus"
-                class="urbex-map-iframe"
-                allowfullscreen=""
-                loading="lazy"
-                referrerpolicy="no-referrer-when-downgrade"
-              ></iframe>
+          <form id="spot-form" class="flex flex-col gap-2">
+            <div>
+              <label class="block text-xs text-slate-300 mb-1">Name</label>
+              <input
+                type="text"
+                id="spot-name"
+                class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
+                placeholder="Old warehouse by the tracks"
+                required
+              />
             </div>
-          </div>
 
-          <!-- Right: Sidebar (form + list) -->
-          <div class="w-full md:w-80 flex flex-col gap-4">
+            <div>
+              <label class="block text-xs text-slate-300 mb-1">
+                Location / link
+              </label>
+              <input
+                type="text"
+                id="spot-location"
+                class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
+                placeholder="Address, coords, or Google Maps share link"
+                required
+              />
+            </div>
 
-            <!-- Add a spot -->
-            <section class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-lg">
-              <h2 class="text-lg font-semibold mb-2">
-                Add a spot
-              </h2>
-              <p class="text-xs text-slate-400 mb-3">
-                Find a place on the map, then copy the address or coordinates from Google Maps and paste it here.
-              </p>
-
-              <form id="spot-form" class="flex flex-col gap-2">
-                <div>
-                  <label class="block text-xs text-slate-300 mb-1">Name</label>
-                  <input
-                    type="text"
-                    id="spot-name"
-                    class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
-                    placeholder="Old warehouse by the tracks"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label class="block text-xs text-slate-300 mb-1">
-                    Location (address or coords)
-                  </label>
-                  <input
-                    type="text"
-                    id="spot-location"
-                    class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
-                    placeholder="123 Example Rd, Salem OR OR 44.93, -123.03"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label class="block text-xs text-slate-300 mb-1">Status</label>
-                  <select
-                    id="spot-status"
-                    class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
-                  >
-                    <option value="scouted">Scouted</option>
-                    <option value="want-to-check">Want to check</option>
-                    <option value="public-legal">Public / legal</option>
-                    <option value="avoid">Avoid / unsafe</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label class="block text-xs text-slate-300 mb-1">Notes</label>
-                  <textarea
-                    id="spot-notes"
-                    rows="3"
-                    class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
-                    placeholder="Access, cameras, hazards, best time, parking, gear needed..."
-                  ></textarea>
-                </div>
-
-                <button
-                  type="submit"
-                  class="mt-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-xl bg-slate-100 text-slate-900 hover:bg-white transition disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  Save spot
-                </button>
-              </form>
-            </section>
-
-            <!-- Spots list -->
-            <section class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-lg flex-1 min-h-[150px]">
-              <div class="flex items-center justify-between mb-2">
-                <h2 class="text-lg font-semibold">My spots</h2>
-                <button
-                  id="clear-all"
-                  class="text-[11px] px-2 py-1 rounded-lg border border-slate-700 text-slate-300 hover:border-red-500 hover:text-red-200 transition"
-                >
-                  Clear all
-                </button>
-              </div>
-
-              <!-- Filters -->
-              <div class="flex flex-wrap gap-1 mb-2 text-[11px]">
-                <button class="filter-chip filter-active" data-status="all">
-                  All
-                </button>
-                <button class="filter-chip" data-status="scouted">
-                  Scouted
-                </button>
-                <button class="filter-chip" data-status="want-to-check">
-                  Want to check
-                </button>
-                <button class="filter-chip" data-status="public-legal">
-                  Public / legal
-                </button>
-                <button class="filter-chip" data-status="avoid">
-                  Avoid
-                </button>
-              </div>
-
-              <!-- Map key / legend -->
-              <div class="mb-2 text-[11px] text-slate-400">
-                <p class="mb-1">Legend (for your notes):</p>
-                <div class="flex flex-wrap gap-3">
-                  <div class="flex items-center gap-1">
-                    <span class="legend-dot legend-scouted"></span>
-                    <span>Scouted</span>
-                  </div>
-                  <div class="flex items-center gap-1">
-                    <span class="legend-dot legend-want"></span>
-                    <span>Want to check</span>
-                  </div>
-                  <div class="flex items-center gap-1">
-                    <span class="legend-dot legend-public"></span>
-                    <span>Public / legal</span>
-                  </div>
-                  <div class="flex items-center gap-1">
-                    <span class="legend-dot legend-avoid"></span>
-                    <span>Avoid / unsafe</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="mb-2">
-                <input
-                  type="text"
-                  id="search-input"
-                  class="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
-                  placeholder="Search by name, notes, location..."
-                />
-              </div>
-
-              <div
-                id="spots-list"
-                class="mt-2 space-y-2 max-h-56 overflow-y-auto pr-1 text-sm"
+            <!-- Graffiti tier -->
+            <div>
+              <label class="block text-xs text-slate-300 mb-1">Graffiti tier</label>
+              <select
+                id="spot-tier"
+                class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
               >
-                <!-- Filled by JS -->
-              </div>
+                <option value="graffiti_no_power">Graffiti · no power</option>
+                <option value="graffiti_power">Graffiti · has power</option>
+                <option value="graffiti_plus_power">Graffiti++ · lots + power</option>
+              </select>
+            </div>
 
-              <p class="text-[11px] text-slate-500 mt-2">
-                Spots save only in this browser (localStorage).  
-                Clicking a spot opens it in Google Maps with your notes.
-              </p>
-            </section>
+            <!-- Yes / no toggles -->
+            <div class="grid grid-cols-2 gap-2 text-[11px]">
+              <div>
+                <p class="mb-1 text-slate-300">Security / cameras</p>
+                <div class="flex gap-1">
+                  <button type="button" class="yn-chip yn-yes" data-group="security" data-value="yes">
+                    Yes
+                  </button>
+                  <button type="button" class="yn-chip yn-no yn-active" data-group="security" data-value="no">
+                    No / unknown
+                  </button>
+                </div>
+              </div>
+              <div>
+                <p class="mb-1 text-slate-300">Squatters</p>
+                <div class="flex gap-1">
+                  <button type="button" class="yn-chip yn-yes" data-group="squatters" data-value="yes">
+                    Yes / likely
+                  </button>
+                  <button type="button" class="yn-chip yn-no yn-active" data-group="squatters" data-value="no">
+                    No / unlikely
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <input type="hidden" id="spot-security" value="no" />
+            <input type="hidden" id="spot-squatters" value="no" />
+
+            <div>
+              <label class="block text-xs text-slate-300 mb-1">Notes (optional)</label>
+              <textarea
+                id="spot-notes"
+                rows="2"
+                class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
+                placeholder="Access, vibe, hazards, good time to go..."
+              ></textarea>
+            </div>
+
+            <button
+              type="submit"
+              class="mt-2 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-xl bg-slate-100 text-slate-900 hover:bg-white transition"
+            >
+              Save spot
+            </button>
+          </form>
+        </section>
+
+        <!-- Saved spots -->
+        <section class="flex-1 flex flex-col p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h2 class="text-sm font-semibold">My spots</h2>
+            <button
+              id="clear-all"
+              class="text-[11px] px-2 py-1 rounded-lg border border-slate-700 text-slate-300 hover:border-red-500 hover:text-red-200 transition"
+            >
+              Clear all
+            </button>
           </div>
-        </div>
+
+          <div class="mb-2">
+            <input
+              type="text"
+              id="search-input"
+              class="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
+              placeholder="Search by name, notes, location..."
+            />
+          </div>
+
+          <div
+            id="spots-list"
+            class="mt-1 space-y-2 flex-1 overflow-y-auto pr-1 text-sm"
+          >
+            <!-- Filled by JS -->
+          </div>
+
+          <p class="text-[10px] text-slate-500 mt-2">
+            Saved only in this browser (localStorage). Click “Open in Maps” on a spot to jump to it.
+          </p>
+        </section>
       </div>
-    </main>
+    </aside>
   </div>
 </body>
 </html>
