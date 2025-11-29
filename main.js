@@ -1,145 +1,60 @@
-let map;
-let markers = [];
-let lastClickLatLng = null;
-let locations = [];
+const STORAGE_KEY = "urbex_spots_v1";
 
-const STORAGE_KEY = "urbex_locations_v2";
-const BACKEND_ENABLED = false; // set true later if you build a real backend
+let spots = [];
 
-// marker colors for each status
-const statusStyles = {
-  scouted: { fill: "#38bdf8", stroke: "#0ea5e9" }, // sky
-  "want-to-check": { fill: "#facc15", stroke: "#eab308" }, // yellow
-  "public-legal": { fill: "#34d399", stroke: "#10b981" }, // green
-  avoid: { fill: "#fb7185", stroke: "#f97373" }, // red
-  default: { fill: "#a855f7", stroke: "#a855f7" },
-};
-
-// Called by Google Maps script (callback=initMap in index.html)
-function initMap() {
-  const salem = { lat: 44.9429, lng: -123.0351 };
-
-  map = new google.maps.Map(document.getElementById("map"), {
-    center: salem,
-    zoom: 12,
-  });
-
-  // click to drop pin
-  map.addListener("click", (e) => {
-    lastClickLatLng = e.latLng;
-    document.getElementById("loc-lat").value = lastClickLatLng
-      .lat()
-      .toFixed(6);
-    document.getElementById("loc-lng").value = lastClickLatLng
-      .lng()
-      .toFixed(6);
-    addSelectionMarker(lastClickLatLng);
-    document.getElementById("save-btn").disabled = false;
-  });
-
-  wireUI();
-
-  // load saved locations
-  loadLocationsFromStorage();
-  renderLocationList();
-  renderMarkers();
-
-  if (BACKEND_ENABLED) {
-    // later: load from backend instead of/in addition to localStorage
-    // loadLocationsFromBackend();
-  }
-}
-
-function wireUI() {
-  const form = document.getElementById("location-form");
-  const searchInput = document.getElementById("search-input");
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("spot-form");
   const clearAllBtn = document.getElementById("clear-all");
-  const saveBtn = document.getElementById("save-btn");
-  const centerSalemBtn = document.getElementById("center-salem");
-  const locateMeBtn = document.getElementById("locate-me");
+  const searchInput = document.getElementById("search-input");
   const filterChips = document.querySelectorAll(".filter-chip");
 
-  if (!document.getElementById("loc-lat").value) {
-    saveBtn.disabled = true;
-  }
+  // Set default filter
+  document.body.dataset.filterStatus = "all";
 
-  form.addEventListener("submit", async (e) => {
+  // Load existing spots
+  loadSpotsFromStorage();
+  renderSpotList();
+
+  form.addEventListener("submit", (e) => {
     e.preventDefault();
-    if (!lastClickLatLng) return;
 
-    const name = document.getElementById("loc-name").value.trim();
-    const status = document.getElementById("loc-status").value;
-    const notes = document.getElementById("loc-notes").value.trim();
+    const nameEl = document.getElementById("spot-name");
+    const locEl = document.getElementById("spot-location");
+    const statusEl = document.getElementById("spot-status");
+    const notesEl = document.getElementById("spot-notes");
 
-    if (!name) return;
+    const name = nameEl.value.trim();
+    const location = locEl.value.trim();
+    const status = statusEl.value;
+    const notes = notesEl.value.trim();
 
-    const newLocation = {
+    if (!name || !location) return;
+
+    const spot = {
       id: Date.now(),
       name,
+      location,
       status,
       notes,
-      lat: lastClickLatLng.lat(),
-      lng: lastClickLatLng.lng(),
       createdAt: new Date().toISOString(),
     };
 
-    locations.push(newLocation);
-    saveLocationsToStorage();
-
-    if (BACKEND_ENABLED) {
-      try {
-        await saveLocationToBackend(newLocation);
-      } catch (err) {
-        console.error("Backend save failed", err);
-      }
-    }
+    spots.push(spot);
+    saveSpotsToStorage();
+    renderSpotList();
 
     form.reset();
-    document.getElementById("loc-lat").value = "";
-    document.getElementById("loc-lng").value = "";
-    lastClickLatLng = null;
-    saveBtn.disabled = true;
-
-    renderLocationList();
-    renderMarkers();
-  });
-
-  searchInput.addEventListener("input", () => {
-    renderLocationList();
-    renderMarkers();
   });
 
   clearAllBtn.addEventListener("click", () => {
     if (!confirm("Clear all saved spots from this browser?")) return;
-    locations = [];
-    saveLocationsToStorage();
-    renderLocationList();
-    renderMarkers();
+    spots = [];
+    saveSpotsToStorage();
+    renderSpotList();
   });
 
-  centerSalemBtn.addEventListener("click", () => {
-    map.panTo({ lat: 44.9429, lng: -123.0351 });
-    map.setZoom(12);
-  });
-
-  locateMeBtn.addEventListener("click", () => {
-    if (!navigator.geolocation) {
-      alert("Geolocation not supported in this browser.");
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const coords = {
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-        };
-        map.panTo(coords);
-        map.setZoom(13);
-      },
-      () => {
-        alert("Could not get your location.");
-      }
-    );
+  searchInput.addEventListener("input", () => {
+    renderSpotList();
   });
 
   filterChips.forEach((chip) => {
@@ -148,198 +63,122 @@ function wireUI() {
       document.body.dataset.filterStatus = active;
 
       filterChips.forEach((c) => {
-        c.classList.toggle(
-          "bg-slate-800",
-          c === chip && active !== "all"
-        );
-        c.classList.toggle(
-          "border-slate-600",
-          c === chip && active !== "all"
-        );
-        c.classList.toggle(
-          "text-slate-100",
-          c === chip && active !== "all"
-        );
+        c.classList.toggle("filter-active", c === chip);
       });
 
-      renderLocationList();
-      renderMarkers();
+      renderSpotList();
     });
   });
+});
 
-  // default filter
-  document.body.dataset.filterStatus = "all";
-}
-
-function addSelectionMarker(latLng) {
-  // remove old selection markers
-  markers
-    .filter((m) => m.__selection)
-    .forEach((m) => m.setMap(null));
-  markers = markers.filter((m) => !m.__selection);
-
-  const selMarker = new google.maps.Marker({
-    position: latLng,
-    map,
-    icon: {
-      path: google.maps.SymbolPath.CIRCLE,
-      scale: 7,
-      fillColor: "#38bdf8",
-      fillOpacity: 1,
-      strokeColor: "#0ea5e9",
-      strokeWeight: 2,
-    },
-  });
-  selMarker.__selection = true;
-  markers.push(selMarker);
-}
-
-function markerIconForStatus(status) {
-  const style = statusStyles[status] || statusStyles.default;
-  return {
-    path: google.maps.SymbolPath.CIRCLE,
-    scale: 6,
-    fillColor: style.fill,
-    fillOpacity: 1,
-    strokeColor: style.stroke,
-    strokeWeight: 2,
-  };
-}
-
-function renderMarkers() {
-  // remove all non-selection markers
-  markers
-    .filter((m) => !m.__selection)
-    .forEach((m) => m.setMap(null));
-  markers = markers.filter((m) => m.__selection);
-
+function renderSpotList() {
+  const list = document.getElementById("spots-list");
   const filterStatus = document.body.dataset.filterStatus || "all";
   const searchValue = document
     .getElementById("search-input")
     .value.toLowerCase()
     .trim();
 
-  let filtered = locations;
+  let filtered = spots.slice();
 
   if (filterStatus !== "all") {
-    filtered = filtered.filter((loc) => loc.status === filterStatus);
+    filtered = filtered.filter((s) => s.status === filterStatus);
   }
+
   if (searchValue) {
-    filtered = filtered.filter((loc) => {
+    filtered = filtered.filter((s) => {
       return (
-        loc.name.toLowerCase().includes(searchValue) ||
-        (loc.notes || "").toLowerCase().includes(searchValue)
-      );
-    });
-  }
-
-  filtered.forEach((loc) => {
-    const marker = new google.maps.Marker({
-      position: { lat: loc.lat, lng: loc.lng },
-      map,
-      title: loc.name,
-      icon: markerIconForStatus(loc.status),
-    });
-
-    const infoContent = `
-      <div style="font-size:13px; max-width:230px;">
-        <div style="font-weight:600; margin-bottom:2px;">${escapeHtml(
-          loc.name
-        )}</div>
-        <div style="font-size:11px; color:#64748b; margin-bottom:4px;">
-          Status: ${escapeHtml(loc.status)}
-        </div>
-        ${
-          loc.notes
-            ? `<div style="white-space:pre-wrap; margin-bottom:4px;">${escapeHtml(
-                loc.notes
-              )}</div>`
-            : ""
-        }
-        <div style="font-size:10px; color:#94a3b8;">
-          ${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}
-        </div>
-      </div>
-    `;
-
-    const infoWindow = new google.maps.InfoWindow({ content: infoContent });
-
-    marker.addListener("click", () => {
-      infoWindow.open(map, marker);
-    });
-
-    markers.push(marker);
-  });
-}
-
-function renderLocationList() {
-  const list = document.getElementById("locations-list");
-  const filterStatus = document.body.dataset.filterStatus || "all";
-  const searchValue = document
-    .getElementById("search-input")
-    .value.toLowerCase()
-    .trim();
-
-  let filtered = locations;
-
-  if (filterStatus !== "all") {
-    filtered = filtered.filter((loc) => loc.status === filterStatus);
-  }
-  if (searchValue) {
-    filtered = filtered.filter((loc) => {
-      return (
-        loc.name.toLowerCase().includes(searchValue) ||
-        (loc.notes || "").toLowerCase().includes(searchValue)
+        s.name.toLowerCase().includes(searchValue) ||
+        s.location.toLowerCase().includes(searchValue) ||
+        (s.notes || "").toLowerCase().includes(searchValue)
       );
     });
   }
 
   if (!filtered.length) {
     list.innerHTML =
-      '<p class="text-xs text-slate-500">No spots yet. Click on the map to drop a pin and save your first one.</p>';
+      '<p class="text-xs text-slate-500">No spots yet. Add one on the right after you find it on the map.</p>';
     return;
   }
 
   list.innerHTML = "";
+
   filtered
-    .slice()
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    .forEach((loc) => {
-      const item = document.createElement("button");
+    .forEach((spot) => {
+      const item = document.createElement("div");
       item.className =
-        "w-full text-left px-3 py-2 rounded-xl bg-slate-950/60 border border-slate-800 hover:border-sky-500 hover:bg-slate-900/80 transition flex flex-col gap-1";
+        "w-full px-3 py-2 rounded-xl bg-slate-950/60 border border-slate-800 flex flex-col gap-1";
+
+      const statusLabel = prettyStatus(spot.status);
 
       item.innerHTML = `
         <div class="flex items-center justify-between gap-2">
           <span class="font-medium text-sm truncate">${escapeHtml(
-            loc.name
+            spot.name
           )}</span>
           <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
-            ${escapeHtml(statusPretty(loc.status))}
+            ${escapeHtml(statusLabel)}
           </span>
         </div>
+        <p class="text-[11px] text-slate-400 truncate">
+          ${escapeHtml(spot.location)}
+        </p>
         ${
-          loc.notes
-            ? `<p class="text-xs text-slate-300 line-clamp-2">${escapeHtml(
-                loc.notes
+          spot.notes
+            ? `<p class="text-xs text-slate-200 whitespace-pre-wrap max-h-16 overflow-hidden">${escapeHtml(
+                spot.notes
               )}</p>`
             : ""
         }
-        <p class="text-[10px] text-slate-500">${loc.lat.toFixed(
-          4
-        )}, ${loc.lng.toFixed(4)}</p>
+        <div class="flex gap-2 mt-1">
+          <button class="text-[11px] px-2 py-1 rounded-lg bg-slate-100 text-slate-900 hover:bg-white transition open-maps-btn">
+            Open in Maps
+          </button>
+          <button class="text-[11px] px-2 py-1 rounded-lg border border-slate-700 text-slate-300 hover:border-red-500 hover:text-red-200 transition delete-spot-btn">
+            Delete
+          </button>
+        </div>
       `;
 
-      item.addEventListener("click", () => {
-        map.panTo({ lat: loc.lat, lng: loc.lng });
-        map.setZoom(15);
+      const openBtn = item.querySelector(".open-maps-btn");
+      openBtn.addEventListener("click", () => {
+        const url =
+          "https://www.google.com/maps/search/?api=1&query=" +
+          encodeURIComponent(spot.location);
+        window.open(url, "_blank", "noopener");
+      });
+
+      const deleteBtn = item.querySelector(".delete-spot-btn");
+      deleteBtn.addEventListener("click", () => {
+        if (!confirm("Delete this spot?")) return;
+        spots = spots.filter((s) => s.id !== spot.id);
+        saveSpotsToStorage();
+        renderSpotList();
       });
 
       list.appendChild(item);
     });
 }
 
-function statusPretty(status) {
+function saveSpotsToStorage() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(spots));
+}
+
+function loadSpotsFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      spots = parsed;
+    }
+  } catch (err) {
+    console.error("Failed to load spots from storage", err);
+  }
+}
+
+function prettyStatus(status) {
   switch (status) {
     case "scouted":
       return "Scouted";
@@ -354,23 +193,6 @@ function statusPretty(status) {
   }
 }
 
-function saveLocationsToStorage() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
-}
-
-function loadLocationsFromStorage() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) {
-      locations = parsed;
-    }
-  } catch (err) {
-    console.error("Failed to load locations from storage", err);
-  }
-}
-
 function escapeHtml(str) {
   if (!str) return "";
   return String(str)
@@ -378,24 +200,4 @@ function escapeHtml(str) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
-}
-
-/* BACKEND STUBS – fill in later once you pick a backend */
-async function saveLocationToBackend(location) {
-  // Example for later:
-  // await fetch("/api/locations", {
-  //   method: "POST",
-  //   headers: { "Content-Type": "application/json" },
-  //   body: JSON.stringify(location),
-  // });
-}
-
-async function loadLocationsFromBackend() {
-  // Example for later:
-  // const res = await fetch("/api/locations");
-  // const data = await res.json();
-  // locations = data;
-  // saveLocationsToStorage();
-  // renderLocationList();
-  // renderMarkers();
 }
