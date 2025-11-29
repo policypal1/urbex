@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Urbex Log · Salem & Around</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    html, body {
+      height: 100%;
+    }
+    #map {
+      width: 100%;
+      height: 100%;
+      min-height: 320px;
+    }
+  </style>
+</head>
+<body class="h-full bg-slate-950 text-slate-100">
+  <div class="min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur">
+      <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+        <div>
+          <h1 class="text-xl md:text-2xl font-bold tracking-tight">
+            Urbex Log · Salem
+          </h1>
+          <p class="text-xs md:text-sm text-slate-400">
+            Private map of interesting spots around Salem / Oregon. For info only — stay legal and safe.
+          </p>
+        </div>
+        <span class="text-[11px] md:text-xs px-2.5 py-1 rounded-full border border-amber-400/60 text-amber-200 bg-amber-500/10">
+          ⚠️ No trespassing · No breaking in
+        </span>
+      </div>
+    </header>
+
+    <!-- Main layout -->
+    <main class="flex-1">
+      <div class="max-w-6xl mx-auto px-4 py-4 h-full">
+        <div class="flex flex-col md:flex-row gap-4 h-[calc(100vh-6rem)] md:h-[72vh]">
+
+          <!-- Left: Map + controls -->
+          <div class="flex-1 flex flex-col gap-2">
+            <div class="flex items-center gap-2 mb-1">
+              <button
+                id="center-salem"
+                class="text-[11px] px-3 py-1.5 rounded-full bg-slate-900 border border-slate-700 hover:border-sky-500 hover:bg-slate-800 transition"
+              >
+                Center on Salem
+              </button>
+              <button
+                id="locate-me"
+                class="text-[11px] px-3 py-1.5 rounded-full bg-slate-900 border border-slate-700 hover:border-emerald-500 hover:bg-slate-800 transition"
+              >
+                Use my location
+              </button>
+              <span class="text-[11px] text-slate-500">
+                Click map to drop a pin, then fill the form →
+              </span>
+            </div>
+
+            <div class="flex-1 bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-lg">
+              <div id="map"></div>
+            </div>
+          </div>
+
+          <!-- Right: Sidebar -->
+          <div class="w-full md:w-80 flex flex-col gap-4">
+
+            <!-- Add location form -->
+            <section class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-lg">
+              <h2 class="text-lg font-semibold mb-2 flex items-center gap-2">
+                Add a spot
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
+                  Click map first
+                </span>
+              </h2>
+              <p class="text-xs text-slate-400 mb-3">
+                Use this just for your own notes. Don’t share locations publicly if they’re sensitive or sketchy.
+              </p>
+
+              <form id="location-form" class="flex flex-col gap-2">
+                <div>
+                  <label class="block text-xs text-slate-300 mb-1">Name</label>
+                  <input
+                    type="text"
+                    id="loc-name"
+                    class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                    placeholder="Old warehouse by the tracks, rooftop, tunnel, etc."
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-xs text-slate-300 mb-1">Status</label>
+                  <select
+                    id="loc-status"
+                    class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                  >
+                    <option value="scouted">Scouted</option>
+                    <option value="want-to-check">Want to check</option>
+                    <option value="public-legal">Public / legal</option>
+                    <option value="avoid">Avoid / unsafe</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-xs text-slate-300 mb-1">Notes</label>
+                  <textarea
+                    id="loc-notes"
+                    rows="3"
+                    class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                    placeholder="Access notes, cameras, hazards, best time, parking, gear needed, etc."
+                  ></textarea>
+                </div>
+
+                <div class="flex gap-2">
+                  <div class="flex-1">
+                    <label class="block text-[11px] text-slate-400 mb-0.5">Lat</label>
+                    <input
+                      type="text"
+                      id="loc-lat"
+                      class="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs"
+                      readonly
+                    />
+                  </div>
+                  <div class="flex-1">
+                    <label class="block text-[11px] text-slate-400 mb-0.5">Lng</label>
+                    <input
+                      type="text"
+                      id="loc-lng"
+                      class="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs"
+                      readonly
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  class="mt-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-xl bg-sky-500 hover:bg-sky-400 text-white transition disabled:opacity-40 disabled:cursor-not-allowed"
+                  id="save-btn"
+                >
+                  Save spot
+                </button>
+
+                <p id="form-hint" class="text-[11px] text-slate-500 mt-1">
+                  If Save is disabled, click somewhere on the map to drop a pin first.
+                </p>
+              </form>
+            </section>
+
+            <!-- Filters + list -->
+            <section class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-lg flex-1 min-h-[150px]">
+              <div class="flex items-center justify-between mb-2">
+                <h2 class="text-lg font-semibold">My spots</h2>
+                <button
+                  id="clear-all"
+                  class="text-[11px] px-2 py-1 rounded-lg border border-slate-700 text-slate-300 hover:border-red-500 hover:text-red-200 transition"
+                >
+                  Clear all
+                </button>
+              </div>
+
+              <!-- Status filters -->
+              <div class="flex flex-wrap gap-1 mb-2 text-[11px]">
+                <button class="filter-chip px-2.5 py-1 rounded-full border border-slate-600 bg-slate-800 text-slate-100" data-status="all">
+                  All
+                </button>
+                <button class="filter-chip px-2.5 py-1 rounded-full border border-slate-700 text-sky-200" data-status="scouted">
+                  Scouted
+                </button>
+                <button class="filter-chip px-2.5 py-1 rounded-full border border-slate-700 text-amber-200" data-status="want-to-check">
+                  Want to check
+                </button>
+                <button class="filter-chip px-2.5 py-1 rounded-full border border-slate-700 text-emerald-200" data-status="public-legal">
+                  Public / legal
+                </button>
+                <button class="filter-chip px-2.5 py-1 rounded-full border border-slate-700 text-red-200" data-status="avoid">
+                  Avoid
+                </button>
+              </div>
+
+              <div class="mb-2">
+                <input
+                  type="text"
+                  id="search-input"
+                  class="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                  placeholder="Search by name, notes..."
+                />
+              </div>
+
+              <div
+                id="locations-list"
+                class="mt-2 space-y-2 max-h-56 overflow-y-auto pr-1 text-sm"
+              >
+                <!-- Filled by JS -->
+              </div>
+
+              <p class="text-[11px] text-slate-500 mt-2">
+                Currently saves in your browser (localStorage).  
+                Hooks are ready to sync with a backend later (Supabase, Vercel, etc.).
+              </p>
+            </section>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Google Maps JS API -->
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=YOUR_REAL_GOOGLE_MAPS_API_KEY&callback=initMap&loading=async"
+    async
+    defer
+  ></script>
+
+  <script>
+    let map;
+    let markers = [];
+    let lastClickLatLng = null;
+    let locations = [];
+
+    const STORAGE_KEY = "urbex_locations_v2";
+    const BACKEND_ENABLED = false; // set to true AFTER you build a backend
+
+    // marker colors for each status
+    const statusStyles = {
+      "scouted":   { fill: "#38bdf8", stroke: "#0ea5e9" }, // sky
+      "want-to-check": { fill: "#facc15", stroke: "#eab308" }, // yellow
+      "public-legal":  { fill: "#34d399", stroke: "#10b981" }, // green
+      "avoid":     { fill: "#fb7185", stroke: "#f97373" }, // red
+      "default":   { fill: "#a855f7", stroke: "#a855f7" }
+    };
+
+    function initMap() {
+      const salem = { lat: 44.9429, lng: -123.0351 };
+
+      map = new google.maps.Map(document.getElementById("map"), {
+        center: salem,
+        zoom: 12
+      });
+
+      map.addListener("click", (e) => {
+        lastClickLatLng = e.latLng;
+        document.getElementById("loc-lat").value = lastClickLatLng.lat().toFixed(6);
+        document.getElementById("loc-lng").value = lastClickLatLng.lng().toFixed(6);
+        addSelectionMarker(lastClickLatLng);
+        document.getElementById("save-btn").disabled = false;
+      });
+
+      wireUI();
+
+      // Load data
+      loadLocationsFromStorage();
+      renderLocationList();
+      renderMarkers();
+
+      if (BACKEND_ENABLED) {
+        // Once backend exists, you can uncomment this:
+        // loadLocationsFromBackend();
+      }
+    }
+
+    function wireUI() {
+      const form = document.getElementById("location-form");
+      const searchInput = document.getElementById("search-input");
+      const clearAllBtn = document.getElementById("clear-all");
+      const saveBtn = document.getElementById("save-btn");
+      const centerSalemBtn = document.getElementById("center-salem");
+      const locateMeBtn = document.getElementById("locate-me");
+      const filterChips = document.querySelectorAll(".filter-chip");
+
+      if (!document.getElementById("loc-lat").value) {
+        saveBtn.disabled = true;
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!lastClickLatLng) return;
+
+        const name = document.getElementById("loc-name").value.trim();
+        const status = document.getElementById("loc-status").value;
+        const notes = document.getElementById("loc-notes").value.trim();
+
+        if (!name) return;
+
+        const newLocation = {
+          id: Date.now(),
+          name,
+          status,
+          notes,
+          lat: lastClickLatLng.lat(),
+          lng: lastClickLatLng.lng(),
+          createdAt: new Date().toISOString()
+        };
+
+        locations.push(newLocation);
+        saveLocationsToStorage();
+
+        if (BACKEND_ENABLED) {
+          try {
+            await saveLocationToBackend(newLocation);
+          } catch (err) {
+            console.error("Backend save failed", err);
+          }
+        }
+
+        form.reset();
+        document.getElementById("loc-lat").value = "";
+        document.getElementById("loc-lng").value = "";
+        lastClickLatLng = null;
+        saveBtn.disabled = true;
+
+        renderLocationList();
+        renderMarkers();
+      });
+
+      searchInput.addEventListener("input", () => {
+        renderLocationList();
+      });
+
+      clearAllBtn.addEventListener("click", () => {
+        if (!confirm("Clear all saved spots from this browser?")) return;
+        locations = [];
+        saveLocationsToStorage();
+        renderLocationList();
+        renderMarkers();
+      });
+
+      centerSalemBtn.addEventListener("click", () => {
+        map.panTo({ lat: 44.9429, lng: -123.0351 });
+        map.setZoom(12);
+      });
+
+      locateMeBtn.addEventListener("click", () => {
+        if (!navigator.geolocation) {
+          alert("Geolocation not supported in this browser.");
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const coords = {
+              lat: pos.coords.latitude,
+              lng: pos.coords.longitude
+            };
+            map.panTo(coords);
+            map.setZoom(13);
+          },
+          () => {
+            alert("Could not get your location.");
+          }
+        );
+      });
+
+      filterChips.forEach((chip) => {
+        chip.addEventListener("click", () => {
+          const active = chip.dataset.status;
+          document.body.dataset.filterStatus = active;
+          filterChips.forEach((c) => {
+            c.classList.toggle(
+              "bg-slate-800 border-slate-600 text-slate-100",
+              c === chip
+            );
+          });
+          renderLocationList();
+          renderMarkers();
+        });
+      });
+
+      // set default filter to "all"
+      document.body.dataset.filterStatus = "all";
+    }
+
+    function addSelectionMarker(latLng) {
+      // Remove previous selection marker
+      markers
+        .filter((m) => m.__selection)
+        .forEach((m) => m.setMap(null));
+      markers = markers.filter((m) => !m.__selection);
+
+      const selMarker = new google.maps.Marker({
+        position: latLng,
+        map,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 7,
+          fillColor: "#38bdf8",
+          fillOpacity: 1,
+          strokeColor: "#0ea5e9",
+          strokeWeight: 2
+        }
+      });
+      selMarker.__selection = true;
+      markers.push(selMarker);
+    }
+
+    function markerIconForStatus(status) {
+      const style = statusStyles[status] || statusStyles.default;
+      return {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 6,
+        fillColor: style.fill,
+        fillOpacity: 1,
+        strokeColor: style.stroke,
+        strokeWeight: 2
+      };
+    }
+
+    function renderMarkers() {
+      // Remove all non-selection markers
+      markers
+        .filter((m) => !m.__selection)
+        .forEach((m) => m.setMap(null));
+      markers = markers.filter((m) => m.__selection);
+
+      const filterStatus = document.body.dataset.filterStatus || "all";
+      const searchValue = document
+        .getElementById("search-input")
+        .value.toLowerCase()
+        .trim();
+
+      let filtered = locations;
+      if (filterStatus !== "all") {
+        filtered = filtered.filter((loc) => loc.status === filterStatus);
+      }
+      if (searchValue) {
+        filtered = filtered.filter((loc) => {
+          return (
+            loc.name.toLowerCase().includes(searchValue) ||
+            (loc.notes || "").toLowerCase().includes(searchValue)
+          );
+        });
+      }
+
+      filtered.forEach((loc) => {
+        const marker = new google.maps.Marker({
+          position: { lat: loc.lat, lng: loc.lng },
+          map,
+          title: loc.name,
+          icon: markerIconForStatus(loc.status)
+        });
+
+        const infoContent = `
+          <div style="font-size:13px; max-width:230px;">
+            <div style="font-weight:600; margin-bottom:2px;">${escapeHtml(loc.name)}</div>
+            <div style="font-size:11px; color:#64748b; margin-bottom:4px;">
+              Status: ${escapeHtml(loc.status)}
+            </div>
+            ${
+              loc.notes
+                ? `<div style="white-space:pre-wrap; margin-bottom:4px;">${escapeHtml(
+                    loc.notes
+                  )}</div>`
+                : ""
+            }
+            <div style="font-size:10px; color:#94a3b8;">
+              ${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}
+            </div>
+          </div>
+        `;
+
+        const infoWindow = new google.maps.InfoWindow({ content: infoContent });
+
+        marker.addListener("click", () => {
+          infoWindow.open(map, marker);
+        });
+
+        markers.push(marker);
+      });
+    }
+
+    function renderLocationList() {
+      const list = document.getElementById("locations-list");
+      const filterStatus = document.body.dataset.filterStatus || "all";
+      const searchValue = document
+        .getElementById("search-input")
+        .value.toLowerCase()
+        .trim();
+
+      let filtered = locations;
+
+      if (filterStatus !== "all") {
+        filtered = filtered.filter((loc) => loc.status === filterStatus);
+      }
+      if (searchValue) {
+        filtered = filtered.filter((loc) => {
+          return (
+            loc.name.toLowerCase().includes(searchValue) ||
+            (loc.notes || "").toLowerCase().includes(searchValue)
+          );
+        });
+      }
+
+      if (!filtered.length) {
+        list.innerHTML =
+          '<p class="text-xs text-slate-500">No spots yet. Click on the map to drop a pin and save your first one.</p>';
+        return;
+      }
+
+      list.innerHTML = "";
+      filtered
+        .slice()
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .forEach((loc) => {
+          const item = document.createElement("button");
+          item.className =
+            "w-full text-left px-3 py-2 rounded-xl bg-slate-950/60 border border-slate-800 hover:border-sky-500 hover:bg-slate-900/80 transition flex flex-col gap-1";
+          const statusLabel = statusPretty(loc.status);
+          item.innerHTML = `
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-medium text-sm truncate">${escapeHtml(loc.name)}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
+                ${escapeHtml(statusLabel)}
+              </span>
+            </div>
+            ${
+              loc.notes
+                ? `<p class="text-xs text-slate-300 line-clamp-2">${escapeHtml(
+                    loc.notes
+                  )}</p>`
+                : ""
+            }
+            <p class="text-[10px] text-slate-500">${loc.lat.toFixed(
+              4
+            )}, ${loc.lng.toFixed(4)}</p>
+          `;
+
+          item.addEventListener("click", () => {
+            map.panTo({ lat: loc.lat, lng: loc.lng });
+            map.setZoom(15);
+          });
+
+          list.appendChild(item);
+        });
+    }
+
+    function statusPretty(status) {
+      switch (status) {
+        case "scouted": return "Scouted";
+        case "want-to-check": return "Want to check";
+        case "public-legal": return "Public / legal";
+        case "avoid": return "Avoid / unsafe";
+        default: return status;
+      }
+    }
+
+    function saveLocationsToStorage() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(locations));
+    }
+
+    function loadLocationsFromStorage() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          locations = parsed;
+        }
+      } catch (err) {
+        console.error("Failed to load locations from storage", err);
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    // BACKEND STUBS – fill in later once you pick a backend
+    async function saveLocationToBackend(location) {
+      // Example later:
+      // await fetch("/api/locations", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify(location),
+      // });
+    }
+
+    async function loadLocationsFromBackend() {
+      // Example later:
+      // const res = await fetch("/api/locations");
+      // const data = await res.json();
+      // locations = data;
+      // saveLocationsToStorage();
+      // renderLocationList();
+      // renderMarkers();
+    }
+  </script>
+</body>
+</html>
