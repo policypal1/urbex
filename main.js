@@ -1,4 +1,4 @@
-const STORAGE_KEY = "urbex_spots_v2";
+const STORAGE_KEY = "urbex_spots_v3";
 let spots = [];
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -6,29 +6,28 @@ document.addEventListener("DOMContentLoaded", () => {
   const clearAllBtn = document.getElementById("clear-all");
   const searchInput = document.getElementById("search-input");
 
+  const statusHidden = document.getElementById("spot-status");
   const securityHidden = document.getElementById("spot-security");
   const squattersHidden = document.getElementById("spot-squatters");
-  const ynChips = document.querySelectorAll(".yn-chip");
 
-  // Yes/No chip logic
-  ynChips.forEach((chip) => {
+  const chips = document.querySelectorAll(".yn-chip");
+
+  // Chip logic (status, security, squatters all use same style)
+  chips.forEach((chip) => {
     chip.addEventListener("click", () => {
       const group = chip.dataset.group;
       const value = chip.dataset.value;
 
-      // deactivate all chips in group
-      ynChips.forEach((c) => {
+      chips.forEach((c) => {
         if (c.dataset.group === group) {
           c.classList.remove("yn-active");
         }
       });
       chip.classList.add("yn-active");
 
-      if (group === "security") {
-        securityHidden.value = value;
-      } else if (group === "squatters") {
-        squattersHidden.value = value;
-      }
+      if (group === "status") statusHidden.value = value;
+      if (group === "security") securityHidden.value = value;
+      if (group === "squatters") squattersHidden.value = value;
     });
   });
 
@@ -42,11 +41,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const nameEl = document.getElementById("spot-name");
     const locEl = document.getElementById("spot-location");
     const tierEl = document.getElementById("spot-tier");
+    const exploreEl = document.getElementById("spot-explore");
     const notesEl = document.getElementById("spot-notes");
 
     const name = nameEl.value.trim();
     const location = locEl.value.trim();
     const tier = tierEl.value;
+    const status = statusHidden.value;
+    const exploreType = exploreEl.value;
     const security = securityHidden.value;
     const squatters = squattersHidden.value;
     const notes = notesEl.value.trim();
@@ -58,6 +60,8 @@ document.addEventListener("DOMContentLoaded", () => {
       name,
       location,
       tier,
+      status,
+      exploreType,
       security,
       squatters,
       notes,
@@ -68,12 +72,19 @@ document.addEventListener("DOMContentLoaded", () => {
     saveSpotsToStorage();
     renderSpotList();
 
+    // Jump map to this spot and show Google’s marker
+    updateMapToLocation(location);
+
     form.reset();
-    // reset hidden defaults (no security, no squatters)
+    // reset hidden/defaults
+    statusHidden.value = "to_go";
     securityHidden.value = "no";
     squattersHidden.value = "no";
     // reset chips
-    ynChips.forEach((c) => {
+    chips.forEach((c) => {
+      if (c.dataset.group === "status") {
+        c.classList.toggle("yn-active", c.dataset.value === "to_go");
+      }
       if (c.dataset.group === "security") {
         c.classList.toggle("yn-active", c.dataset.value === "no");
       }
@@ -94,6 +105,20 @@ document.addEventListener("DOMContentLoaded", () => {
     renderSpotList();
   });
 });
+
+function updateMapToLocation(location) {
+  const frame = document.getElementById("map-frame");
+  if (!frame) return;
+  const loc = location.trim();
+  if (!loc) return;
+
+  // Use free Google Maps embed for a specific place
+  const url =
+    "https://www.google.com/maps?q=" +
+    encodeURIComponent(loc) +
+    "&output=embed";
+  frame.src = url;
+}
 
 function renderSpotList() {
   const list = document.getElementById("spots-list");
@@ -129,8 +154,10 @@ function renderSpotList() {
       div.className = "spot-card text-xs";
 
       const tierLabel = prettyTier(spot.tier);
+      const statusLabel = prettyStatus(spot.status);
+      const exploreLabel = prettyExplore(spot.exploreType);
       const securityLabel =
-        spot.security === "yes" ? "Security/cameras" : "No obvious security";
+        spot.security === "yes" ? "Security / cameras" : "No obvious security";
       const squattersLabel =
         spot.squatters === "yes" ? "Squatters likely" : "Squatters unlikely";
 
@@ -140,11 +167,14 @@ function renderSpotList() {
             spot.name
           )}</span>
           <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-200">
-            ${escapeHtml(tierLabel)}
+            ${escapeHtml(statusLabel)}
           </span>
         </div>
         <p class="text-[11px] text-slate-400 truncate mb-1">
           ${escapeHtml(spot.location)}
+        </p>
+        <p class="text-[11px] text-slate-300 mb-1">
+          ${escapeHtml(exploreLabel)} · ${escapeHtml(tierLabel)}
         </p>
         <p class="text-[11px] text-slate-300">
           • ${escapeHtml(securityLabel)}<br/>
@@ -158,7 +188,10 @@ function renderSpotList() {
             : ""
         }
         <div class="flex gap-2 mt-2">
-          <button class="text-[11px] px-2 py-1 rounded-lg bg-slate-100 text-slate-900 hover:bg-white transition open-maps-btn">
+          <button class="text-[11px] px-2 py-1 rounded-lg bg-slate-100 text-slate-900 hover:bg-white transition show-on-map-btn">
+            Show on map
+          </button>
+          <button class="text-[11px] px-2 py-1 rounded-lg bg-slate-800 text-slate-100 hover:bg-slate-700 transition open-maps-btn">
             Open in Maps
           </button>
           <button class="text-[11px] px-2 py-1 rounded-lg border border-slate-700 text-slate-300 hover:border-red-500 hover:text-red-200 transition delete-spot-btn">
@@ -167,12 +200,15 @@ function renderSpotList() {
         </div>
       `;
 
+      const showBtn = div.querySelector(".show-on-map-btn");
+      showBtn.addEventListener("click", () => {
+        updateMapToLocation(spot.location);
+      });
+
       const openBtn = div.querySelector(".open-maps-btn");
       openBtn.addEventListener("click", () => {
         const loc = spot.location.trim();
         let url;
-
-        // if they pasted a full google maps link, just open it.
         if (loc.startsWith("http")) {
           url = loc;
         } else {
@@ -222,6 +258,34 @@ function prettyTier(tier) {
       return "Graffiti++ · power";
     default:
       return tier;
+  }
+}
+
+function prettyStatus(status) {
+  switch (status) {
+    case "to_go":
+      return "Place to go";
+    case "been":
+      return "Place I’ve been";
+    default:
+      return status;
+  }
+}
+
+function prettyExplore(type) {
+  switch (type) {
+    case "roofing":
+      return "Roofing";
+    case "urbex":
+      return "Abandoned building";
+    case "tunnel":
+      return "Tunnel / drain";
+    case "rooftop_crane":
+      return "Rooftop + crane";
+    case "other":
+      return "Other / mixed";
+    default:
+      return type;
   }
 }
 
