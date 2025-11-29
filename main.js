@@ -1,15 +1,36 @@
-const STORAGE_KEY = "urbex_spots_v1";
-
+const STORAGE_KEY = "urbex_spots_v2";
 let spots = [];
 
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("spot-form");
   const clearAllBtn = document.getElementById("clear-all");
   const searchInput = document.getElementById("search-input");
-  const filterChips = document.querySelectorAll(".filter-chip");
 
-  // Set default filter
-  document.body.dataset.filterStatus = "all";
+  const securityHidden = document.getElementById("spot-security");
+  const squattersHidden = document.getElementById("spot-squatters");
+  const ynChips = document.querySelectorAll(".yn-chip");
+
+  // Yes/No chip logic
+  ynChips.forEach((chip) => {
+    chip.addEventListener("click", () => {
+      const group = chip.dataset.group;
+      const value = chip.dataset.value;
+
+      // deactivate all chips in group
+      ynChips.forEach((c) => {
+        if (c.dataset.group === group) {
+          c.classList.remove("yn-active");
+        }
+      });
+      chip.classList.add("yn-active");
+
+      if (group === "security") {
+        securityHidden.value = value;
+      } else if (group === "squatters") {
+        squattersHidden.value = value;
+      }
+    });
+  });
 
   // Load existing spots
   loadSpotsFromStorage();
@@ -20,12 +41,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const nameEl = document.getElementById("spot-name");
     const locEl = document.getElementById("spot-location");
-    const statusEl = document.getElementById("spot-status");
+    const tierEl = document.getElementById("spot-tier");
     const notesEl = document.getElementById("spot-notes");
 
     const name = nameEl.value.trim();
     const location = locEl.value.trim();
-    const status = statusEl.value;
+    const tier = tierEl.value;
+    const security = securityHidden.value;
+    const squatters = squattersHidden.value;
     const notes = notesEl.value.trim();
 
     if (!name || !location) return;
@@ -34,7 +57,9 @@ document.addEventListener("DOMContentLoaded", () => {
       id: Date.now(),
       name,
       location,
-      status,
+      tier,
+      security,
+      squatters,
       notes,
       createdAt: new Date().toISOString(),
     };
@@ -44,6 +69,18 @@ document.addEventListener("DOMContentLoaded", () => {
     renderSpotList();
 
     form.reset();
+    // reset hidden defaults (no security, no squatters)
+    securityHidden.value = "no";
+    squattersHidden.value = "no";
+    // reset chips
+    ynChips.forEach((c) => {
+      if (c.dataset.group === "security") {
+        c.classList.toggle("yn-active", c.dataset.value === "no");
+      }
+      if (c.dataset.group === "squatters") {
+        c.classList.toggle("yn-active", c.dataset.value === "no");
+      }
+    });
   });
 
   clearAllBtn.addEventListener("click", () => {
@@ -56,34 +93,16 @@ document.addEventListener("DOMContentLoaded", () => {
   searchInput.addEventListener("input", () => {
     renderSpotList();
   });
-
-  filterChips.forEach((chip) => {
-    chip.addEventListener("click", () => {
-      const active = chip.dataset.status;
-      document.body.dataset.filterStatus = active;
-
-      filterChips.forEach((c) => {
-        c.classList.toggle("filter-active", c === chip);
-      });
-
-      renderSpotList();
-    });
-  });
 });
 
 function renderSpotList() {
   const list = document.getElementById("spots-list");
-  const filterStatus = document.body.dataset.filterStatus || "all";
   const searchValue = document
     .getElementById("search-input")
     .value.toLowerCase()
     .trim();
 
   let filtered = spots.slice();
-
-  if (filterStatus !== "all") {
-    filtered = filtered.filter((s) => s.status === filterStatus);
-  }
 
   if (searchValue) {
     filtered = filtered.filter((s) => {
@@ -97,7 +116,7 @@ function renderSpotList() {
 
   if (!filtered.length) {
     list.innerHTML =
-      '<p class="text-xs text-slate-500">No spots yet. Add one on the right after you find it on the map.</p>';
+      '<p class="text-xs text-slate-300">No spots yet. Find a place on the map, fill the form, and hit “Save spot”.</p>';
     return;
   }
 
@@ -106,32 +125,39 @@ function renderSpotList() {
   filtered
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .forEach((spot) => {
-      const item = document.createElement("div");
-      item.className =
-        "w-full px-3 py-2 rounded-xl bg-slate-950/60 border border-slate-800 flex flex-col gap-1";
+      const div = document.createElement("div");
+      div.className = "spot-card text-xs";
 
-      const statusLabel = prettyStatus(spot.status);
+      const tierLabel = prettyTier(spot.tier);
+      const securityLabel =
+        spot.security === "yes" ? "Security/cameras" : "No obvious security";
+      const squattersLabel =
+        spot.squatters === "yes" ? "Squatters likely" : "Squatters unlikely";
 
-      item.innerHTML = `
-        <div class="flex items-center justify-between gap-2">
-          <span class="font-medium text-sm truncate">${escapeHtml(
+      div.innerHTML = `
+        <div class="flex items-center justify-between gap-2 mb-1">
+          <span class="font-semibold text-sm truncate">${escapeHtml(
             spot.name
           )}</span>
-          <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
-            ${escapeHtml(statusLabel)}
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-200">
+            ${escapeHtml(tierLabel)}
           </span>
         </div>
-        <p class="text-[11px] text-slate-400 truncate">
+        <p class="text-[11px] text-slate-400 truncate mb-1">
           ${escapeHtml(spot.location)}
+        </p>
+        <p class="text-[11px] text-slate-300">
+          • ${escapeHtml(securityLabel)}<br/>
+          • ${escapeHtml(squattersLabel)}
         </p>
         ${
           spot.notes
-            ? `<p class="text-xs text-slate-200 whitespace-pre-wrap max-h-16 overflow-hidden">${escapeHtml(
+            ? `<p class="mt-1 text-[11px] text-slate-200 whitespace-pre-wrap max-h-16 overflow-hidden">${escapeHtml(
                 spot.notes
               )}</p>`
             : ""
         }
-        <div class="flex gap-2 mt-1">
+        <div class="flex gap-2 mt-2">
           <button class="text-[11px] px-2 py-1 rounded-lg bg-slate-100 text-slate-900 hover:bg-white transition open-maps-btn">
             Open in Maps
           </button>
@@ -141,15 +167,23 @@ function renderSpotList() {
         </div>
       `;
 
-      const openBtn = item.querySelector(".open-maps-btn");
+      const openBtn = div.querySelector(".open-maps-btn");
       openBtn.addEventListener("click", () => {
-        const url =
-          "https://www.google.com/maps/search/?api=1&query=" +
-          encodeURIComponent(spot.location);
+        const loc = spot.location.trim();
+        let url;
+
+        // if they pasted a full google maps link, just open it.
+        if (loc.startsWith("http")) {
+          url = loc;
+        } else {
+          url =
+            "https://www.google.com/maps/search/?api=1&query=" +
+            encodeURIComponent(loc);
+        }
         window.open(url, "_blank", "noopener");
       });
 
-      const deleteBtn = item.querySelector(".delete-spot-btn");
+      const deleteBtn = div.querySelector(".delete-spot-btn");
       deleteBtn.addEventListener("click", () => {
         if (!confirm("Delete this spot?")) return;
         spots = spots.filter((s) => s.id !== spot.id);
@@ -157,7 +191,7 @@ function renderSpotList() {
         renderSpotList();
       });
 
-      list.appendChild(item);
+      list.appendChild(div);
     });
 }
 
@@ -178,18 +212,16 @@ function loadSpotsFromStorage() {
   }
 }
 
-function prettyStatus(status) {
-  switch (status) {
-    case "scouted":
-      return "Scouted";
-    case "want-to-check":
-      return "Want to check";
-    case "public-legal":
-      return "Public / legal";
-    case "avoid":
-      return "Avoid / unsafe";
+function prettyTier(tier) {
+  switch (tier) {
+    case "graffiti_no_power":
+      return "Graffiti · no power";
+    case "graffiti_power":
+      return "Graffiti · has power";
+    case "graffiti_plus_power":
+      return "Graffiti++ · power";
     default:
-      return status;
+      return tier;
   }
 }
 
