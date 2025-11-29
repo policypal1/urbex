@@ -18,7 +18,7 @@
   <!-- Full-screen map -->
   <div class="h-screen w-screen relative overflow-hidden">
     <div class="absolute inset-0">
-      <!-- Start centered on Salem; JS will change this src as you add/click spots -->
+      <!-- JS will change this src when you show a spot -->
       <iframe
         id="map-frame"
         src="https://www.google.com/maps?q=Salem%2C%20OR&output=embed"
@@ -117,6 +117,29 @@
               </select>
             </div>
 
+            <!-- Rating & go-again (for “been”) -->
+            <div id="rating-section" class="text-[11px] mt-1 hidden">
+              <p class="text-slate-300 mb-1">Rating (1–5) & would go again</p>
+              <div class="flex items-center gap-2 mb-1">
+                <div class="flex gap-1 flex-1">
+                  <button type="button" class="rating-chip" data-value="1">1</button>
+                  <button type="button" class="rating-chip" data-value="2">2</button>
+                  <button type="button" class="rating-chip" data-value="3">3</button>
+                  <button type="button" class="rating-chip" data-value="4">4</button>
+                  <button type="button" class="rating-chip" data-value="5">5</button>
+                </div>
+                <span class="text-[10px] text-slate-500">optional</span>
+              </div>
+              <div class="flex gap-1">
+                <button type="button" class="yn-chip" data-group="again" data-value="yes">
+                  Would go again
+                </button>
+                <button type="button" class="yn-chip yn-active" data-group="again" data-value="no">
+                  Wouldn’t go again
+                </button>
+              </div>
+            </div>
+
             <!-- Yes / no toggles -->
             <div class="grid grid-cols-2 gap-2 text-[11px]">
               <div>
@@ -143,8 +166,11 @@
               </div>
             </div>
 
+            <input type="hidden" id="spot-status-hidden" value="to_go" />
             <input type="hidden" id="spot-security" value="no" />
             <input type="hidden" id="spot-squatters" value="no" />
+            <input type="hidden" id="spot-again" value="no" />
+            <input type="hidden" id="spot-rating" value="0" />
 
             <div>
               <label class="block text-xs text-slate-300 mb-1">Notes (optional)</label>
@@ -158,6 +184,7 @@
 
             <button
               type="submit"
+              id="submit-btn"
               class="mt-2 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-xl bg-slate-100 text-slate-900 hover:bg-white transition"
             >
               Save spot
