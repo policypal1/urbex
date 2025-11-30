@@ -15,9 +15,11 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script>
     const SUPABASE_URL = "https://cljndklondjwnvktlpwc.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsam5ka2xvbmRqd252a3RscHdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0ODE3NjYsImV4CI6MjA4MDA1Nzc2Nn0.41UqqhR2z2gsH_4x0Pb0fzdUzZxCWVZVw-lEil3vTOk";
+    const SUPABASE_ANON_KEY =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsam5ka2xvbmRqd252a3RscHdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0ODE3NjYsImV4cCI6MjA4MDA1Nzc2Nn0.41UqqhR2z2gsH_4x0Pb0fzdUzZxCWVZVw-lEil3vTOk";
 
-    window.supabaseClient = supabase.createClient(
+    // create client from global supabase object
+    window.supabaseClient = window.supabase.createClient(
       SUPABASE_URL,
       SUPABASE_ANON_KEY
     );
@@ -44,30 +46,31 @@
     <header class="absolute top-3 left-1/2 -translate-x-1/2 z-10 px-4 py-2 rounded-full bg-slate-900/85 border border-slate-700 shadow-lg flex items-center gap-3 text-xs md:text-sm">
       <span class="font-semibold">Urbex Log · Salem</span>
       <span class="text-slate-400 hidden md:inline">
-        Private urbex map. 
+        Private urbex map.
       </span>
     </header>
 
-    <!-- Mobile toggle button (top-right) -->
+    <!-- Mobile toggle button (arrow only) -->
     <button
       id="panel-toggle"
-      class="md:hidden absolute top-20 right-4 z-20 rounded-full bg-slate-900/90 border border-slate-700 text-slate-100 w-9 h-9 flex items-center justify-center shadow-lg"
+      class="md:hidden absolute top-24 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-slate-900/90 border border-slate-700 text-slate-100 shadow-lg transition-all duration-300"
       aria-label="Toggle details"
     >
       ⮞
     </button>
 
-    <!-- Right-side panel -->
+    <!-- Right-side / centered panel -->
     <aside
       id="side-panel"
-      class="absolute top-20 right-0 bottom-0 md:right-4 w-full max-w-sm z-10
-             rounded-l-2xl md:rounded-2xl
-             md:bottom-4 md:border md:border-slate-700 md:bg-slate-900/90 md:shadow-2xl md:mr-0
+      class="absolute top-24 left-0 right-0 mx-auto bottom-4 md:top-20 md:right-4 md:left-auto md:mx-0
+             w-[calc(100%-2rem)] max-w-sm z-10
+             rounded-2xl
+             md:border md:border-slate-700 md:bg-slate-900/90 md:shadow-2xl
              bg-slate-900/95 border border-slate-800
              transition-transform duration-300
              md:translate-x-0 translate-x-full"
     >
-      <div class="h-full flex flex-col overflow-hidden md:rounded-2xl">
+      <div class="h-full flex flex-col overflow-hidden rounded-2xl">
         <!-- Form -->
         <section class="p-4 border-b border-slate-800">
           <h2 class="text-base md:text-lg font-semibold mb-1">Add a spot</h2>
