@@ -14,7 +14,6 @@
   <!-- Supabase client (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script>
-    // 🔑 Your real Supabase project details
     const SUPABASE_URL = "https://cljndklondjwnvktlpwc.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsam5ka2xvbmRqd252a3RscHdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0ODE3NjYsImV4cCI6MjA4MDA1Nzc2Nn0.41UqqhR2z2gsH_4x0Pb0fzdUzZxCWVZVw-lEil3vTOk";
 
@@ -24,14 +23,13 @@
     );
   </script>
 
-  <!-- App logic (runs after supabaseClient is defined) -->
+  <!-- App logic -->
   <script defer src="main.js"></script>
 </head>
 <body class="bg-slate-950 text-slate-100">
   <!-- Full-screen map -->
   <div class="h-screen w-screen relative overflow-hidden">
     <div class="absolute inset-0">
-      <!-- JS will change this src when you show a spot -->
       <iframe
         id="map-frame"
         src="https://www.google.com/maps?q=Salem%2C%20OR&output=embed"
@@ -46,21 +44,33 @@
     <header class="absolute top-3 left-1/2 -translate-x-1/2 z-10 px-4 py-2 rounded-full bg-slate-900/85 border border-slate-700 shadow-lg flex items-center gap-3 text-xs md:text-sm">
       <span class="font-semibold">Urbex Log · Salem</span>
       <span class="text-slate-400 hidden md:inline">
-        Private notes only — no trespassing, no breaking in.
+        Private urbex map. Info only — no trespassing, no breaking in.
       </span>
       <span class="ml-auto text-[10px] px-2 py-0.5 rounded-full border border-amber-400/60 text-amber-200 bg-amber-500/10">
         ⚠️ Stay legal & safe
       </span>
     </header>
 
+    <!-- Mobile toggle button -->
+    <button
+      id="panel-toggle"
+      class="md:hidden absolute bottom-4 right-4 z-20 rounded-full bg-slate-900/90 border border-slate-700 text-slate-100 w-10 h-10 flex items-center justify-center shadow-lg"
+      aria-label="Toggle details"
+    >
+      ⮜
+    </button>
+
     <!-- Right-side panel -->
-    <aside class="absolute top-20 right-4 bottom-4 w-full max-w-sm z-10">
-      <div class="h-full bg-slate-900/90 border border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+    <aside
+      id="side-panel"
+      class="absolute top-20 right-0 bottom-0 md:right-4 w-full max-w-sm z-10 md:rounded-2xl md:bottom-4 md:border md:border-slate-700 md:bg-slate-900/90 md:shadow-2xl md:mr-0 bg-slate-900/95 border-l border-slate-800 md:border md:bg-slate-900/90 transition-transform duration-300 md:translate-x-0 translate-x-0"
+    >
+      <div class="h-full flex flex-col overflow-hidden md:rounded-2xl">
         <!-- Form -->
         <section class="p-4 border-b border-slate-800">
           <h2 class="text-base md:text-lg font-semibold mb-1">Add a spot</h2>
           <p class="text-[11px] text-slate-400 mb-3">
-            Find it on the map, copy the address/coords or a Maps link, then fill this in.
+            Find it on the map, copy the address/coords or a Maps link, then save your notes.
           </p>
 
           <form id="spot-form" class="flex flex-col gap-2">
@@ -68,14 +78,14 @@
             <div>
               <p class="block text-xs text-slate-300 mb-1">Visit status</p>
               <div class="flex gap-1 text-[11px]">
-                <button type="button" class="yn-chip yn-active" data-group="status" data-value="to_go">
-                  Place to go
+                <button type="button" class="yn-chip yn-active" data-group="status" data-value="pending">
+                  Pending visit
                 </button>
-                <button type="button" class="yn-chip" data-group="status" data-value="been">
-                  Place I’ve been
+                <button type="button" class="yn-chip" data-group="status" data-value="completed">
+                  Completed visit
                 </button>
               </div>
-              <input type="hidden" id="spot-status-hidden" value="to_go" />
+              <input type="hidden" id="spot-status-hidden" value="pending" />
             </div>
 
             <!-- Type of explore -->
@@ -85,11 +95,11 @@
                 id="spot-explore"
                 class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
               >
+                <option value="urbex">Urbex (abandoned building)</option>
                 <option value="roofing">Roofing</option>
-                <option value="urbex">Abandoned building (urbex)</option>
-                <option value="tunnel">Tunnel / drain</option>
-                <option value="rooftop_crane">Rooftop + crane</option>
-                <option value="other">Other / mixed</option>
+                <option value="drain">Drain / Tunnel</option>
+                <option value="mixed">Mixed / Both</option>
+                <option value="other">Other / Not listed</option>
               </select>
             </div>
 
@@ -117,20 +127,21 @@
               />
             </div>
 
-            <!-- Graffiti tier -->
+            <!-- Status of place -->
             <div>
-              <label class="block text-xs text-slate-300 mb-1">Graffiti tier</label>
+              <label class="block text-xs text-slate-300 mb-1">Status of place</label>
               <select
                 id="spot-tier"
                 class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
               >
-                <option value="graffiti_no_power">Graffiti · no power</option>
-                <option value="graffiti_power">Graffiti · has power</option>
-                <option value="graffiti_plus_power">Graffiti++ · lots + power</option>
+                <option value="no_power">No power</option>
+                <option value="graffiti_no_power">Graffiti (no power)</option>
+                <option value="graffiti_power">Graffiti (power)</option>
+                <option value="no_graffiti">No graffiti</option>
               </select>
             </div>
 
-            <!-- Rating & go-again (for “been”) -->
+            <!-- Rating & go-again (for completed) -->
             <div id="rating-section" class="text-[11px] mt-1 hidden">
               <p class="text-slate-300 mb-1">Rating (1–5) & would go again</p>
               <div class="flex items-center gap-2 mb-1">
@@ -205,7 +216,7 @@
         </section>
 
         <!-- Saved spots -->
-        <section class="flex-1 flex flex-col p-4">
+        <section class="flex-1 flex flex-col p-4 min-h-0">
           <div class="flex items-center justify-between mb-2">
             <h2 class="text-sm font-semibold">My spots</h2>
             <button
@@ -227,7 +238,7 @@
 
           <div
             id="spots-list"
-            class="mt-1 space-y-2 flex-1 overflow-y-auto pr-1 text-sm"
+            class="mt-1 space-y-2 flex-1 overflow-y-auto pr-1 text-sm min-h-0"
           >
             <!-- Filled by JS -->
           </div>
