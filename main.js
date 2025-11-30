@@ -37,28 +37,27 @@ document.addEventListener("DOMContentLoaded", () => {
   // closed by default on mobile, open on desktop
   let panelHidden = window.innerWidth < 768;
 
-  // helper: set panel visibility classes
+  // helper: set panel visibility classes (only matters on mobile)
   function setPanelVisibility() {
     if (!panel) return;
 
     if (window.innerWidth >= 768) {
-      // desktop: always visible
       panelHidden = false;
+      if (panelToggle) {
+        panelToggle.style.display = "none";
+      }
       panel.classList.remove(
         "translate-x-[140%]",
         "opacity-0",
         "pointer-events-none"
       );
-      panel.classList.add("translate-x-0", "opacity-100", "pointer-events-auto");
-      if (panelToggle) {
-        panelToggle.style.display = "none";
-      }
+      panel.classList.add("translate-x-[-50%]", "opacity-100", "pointer-events-auto");
       return;
     }
 
-    // mobile
     if (panelToggle) {
       panelToggle.style.display = "flex";
+      panelToggle.textContent = panelHidden ? "⮜" : "⮞";
     }
 
     if (panelHidden) {
@@ -67,44 +66,15 @@ document.addEventListener("DOMContentLoaded", () => {
         "opacity-0",
         "pointer-events-none"
       );
-      panel.classList.remove("translate-x-0", "opacity-100", "pointer-events-auto");
-      if (panelToggle) panelToggle.textContent = "⮜"; // arrow pointing in
+      panel.classList.remove("translate-x-[-50%]", "opacity-100", "pointer-events-auto");
     } else {
       panel.classList.remove(
         "translate-x-[140%]",
         "opacity-0",
         "pointer-events-none"
       );
-      panel.classList.add("translate-x-0", "opacity-100", "pointer-events-auto");
-      if (panelToggle) panelToggle.textContent = "⮞"; // arrow pointing out
+      panel.classList.add("translate-x-[-50%]", "opacity-100", "pointer-events-auto");
     }
-
-    positionPanelToggle();
-  }
-
-  // helper: position the arrow toggle so that when open,
-  // it sits near the left edge of the panel on mobile
-  function positionPanelToggle() {
-    if (!panelToggle || !panel) return;
-    if (window.innerWidth >= 768) return;
-
-    if (panelHidden) {
-      // when hidden: arrow just hugs the right edge of the screen
-      panelToggle.style.right = "1rem";
-      panelToggle.style.left = "";
-      return;
-    }
-
-    // when open: move it to align with left side of the panel
-    const rect = panel.getBoundingClientRect();
-    const btnWidth = panelToggle.offsetWidth || 36;
-    const gap = 8; // px gap between arrow and panel
-
-    let left = rect.left - btnWidth - gap;
-    if (left < 8) left = 8;
-
-    panelToggle.style.left = `${left}px`;
-    panelToggle.style.right = "";
   }
 
   // init visibility
@@ -121,7 +91,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.addEventListener("resize", () => {
     // on resize, recompute mobile/desktop state
-    panelHidden = window.innerWidth < 768 ? panelHidden : false;
+    if (window.innerWidth >= 768) {
+      panelHidden = false;
+    }
     setPanelVisibility();
   });
 
@@ -137,12 +109,9 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.classList.remove("flex");
   }
 
-  if (seeSpotsBtn) {
-    seeSpotsBtn.addEventListener("click", openModal);
-  }
-  if (modalClose) {
-    modalClose.addEventListener("click", closeModal);
-  }
+  if (seeSpotsBtn) seeSpotsBtn.addEventListener("click", openModal);
+  if (modalClose) modalClose.addEventListener("click", closeModal);
+
   // close when clicking outside card
   modal.addEventListener("click", (e) => {
     if (e.target === modal) closeModal();
@@ -466,7 +435,7 @@ function renderSpotList() {
         window.open(url, "_blank", "noopener");
       });
 
-      // edit
+      // edit – auto-close modal so the panel is visible to edit
       div.querySelector(".edit-spot-btn").addEventListener("click", () => {
         editingId = spot.id;
         submitBtn.textContent = "Update spot";
@@ -526,6 +495,11 @@ function renderSpotList() {
             parseInt(c.dataset.value, 10) === (spot.rating || 0)
           );
         });
+
+        // close the modal screen so the panel is visible for editing
+        const modal = document.getElementById("spots-modal");
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
       });
 
       // delete with passcode
