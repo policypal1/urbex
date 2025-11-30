@@ -34,7 +34,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const statusFilterChips = document.querySelectorAll(".status-filter-chip");
   const exploreFilterSelect = document.getElementById("explore-filter");
 
-  let panelHidden = false;
+  // closed by default on mobile, open on desktop
+  let panelHidden = window.innerWidth < 768;
+
+  if (panelHidden) {
+    panel.classList.add("translate-x-full");
+    if (panelToggle) panelToggle.textContent = "⮞";
+  } else {
+    panel.classList.remove("translate-x-full");
+    if (panelToggle) panelToggle.textContent = "⮜";
+  }
 
   // Mobile panel toggle
   if (panelToggle) {
@@ -92,11 +101,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Chip logic (status, security, squatters, again) for the form
   chips.forEach((chip) => {
-    chip.addEventListener("click", () => {
-      const group = chip.dataset.group;
-      const value = chip.dataset.value;
+    const group = chip.dataset.group;
+    if (!group) return; // filter chips don't have data-group
 
-      if (!group) return; // filter chips skip this logic
+    chip.addEventListener("click", () => {
+      const value = chip.dataset.value;
 
       chips.forEach((c) => {
         if (c.dataset.group === group) {
