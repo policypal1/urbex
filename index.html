@@ -66,10 +66,11 @@
       ⮞
     </button>
 
-    <!-- Centered panel -->
+    <!-- Centered on mobile, docked right on desktop -->
     <aside
       id="side-panel"
       class="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2
+             md:left-auto md:right-6 md:-translate-y-1/2 md:translate-x-0
              w-[calc(100%-2rem)] max-w-sm z-10
              rounded-2xl
              md:border md:border-slate-700 md:bg-slate-900/90 md:shadow-2xl
@@ -77,7 +78,7 @@
              max-h-[80vh] overflow-y-auto
              transition-transform duration-300
              md:opacity-100 md:pointer-events-auto
-             md:translate-x-[-50%]
+             md:translate-x-0
              translate-x-[140%] opacity-0 pointer-events-none"
     >
       <div class="flex flex-col overflow-hidden rounded-2xl">
