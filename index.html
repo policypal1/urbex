@@ -44,10 +44,10 @@
     <header class="absolute top-3 left-1/2 -translate-x-1/2 z-10 px-4 py-2 rounded-full bg-slate-900/85 border border-slate-700 shadow-lg flex items-center gap-3 text-xs md:text-sm">
       <span class="font-semibold">Urbex Log · Salem</span>
       <span class="text-slate-400 hidden md:inline">
-        Private urbex map.
+        Private urbex map. Info only — no trespassing, no breaking in.
       </span>
       <span class="ml-auto text-[10px] px-2 py-0.5 rounded-full border border-amber-400/60 text-amber-200 bg-amber-500/10">
-      
+        ⚠️ Stay legal & safe
       </span>
     </header>
 
@@ -98,8 +98,8 @@
                 <option value="urbex">Urbex (abandoned building)</option>
                 <option value="roofing">Roofing</option>
                 <option value="drain">Drain / Tunnel</option>
-                <option value="mixed">Both</option>
-                <option value="other">Not listed</option>
+                <option value="mixed">Mixed / Both</option>
+                <option value="other">Other / Not listed</option>
               </select>
             </div>
 
@@ -134,10 +134,10 @@
                 id="spot-tier"
                 class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
               >
-                <option value="no_power"></option>
+                <option value="no_power">No power</option>
                 <option value="graffiti_no_power">Graffiti (no power)</option>
                 <option value="graffiti_power">Graffiti (power)</option>
-                <option value="no_graffiti">No graffiti (power)</option>
+                <option value="no_graffiti">No graffiti</option>
               </select>
             </div>
 
@@ -215,7 +215,7 @@
           </form>
         </section>
 
-        <!-- Saved spots -->
+        <!-- Saved spots / browser button -->
         <section class="flex-1 flex flex-col p-4 min-h-0">
           <div class="flex items-center justify-between mb-2">
             <h2 class="text-sm font-semibold">My spots</h2>
@@ -227,21 +227,16 @@
             </button>
           </div>
 
-          <div class="mb-2">
-            <input
-              type="text"
-              id="search-input"
-              class="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
-              placeholder="Search by name, notes, location..."
-            />
-          </div>
+          <p class="text-[11px] text-slate-400 mb-3">
+            Use the browser to see every spot in a list, filter by status or type, and jump to locations.
+          </p>
 
-          <div
-            id="spots-list"
-            class="mt-1 space-y-2 flex-1 overflow-y-auto pr-1 text-sm min-h-0"
+          <button
+            id="open-browser"
+            class="mt-auto w-full inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-xl bg-slate-100 text-slate-900 hover:bg-white transition"
           >
-            <!-- Filled by JS -->
-          </div>
+            Open spot browser
+          </button>
 
           <p class="text-[10px] text-slate-500 mt-2">
             Backed up in Supabase. Open this site on any device and your spots will load.
@@ -249,6 +244,71 @@
         </section>
       </div>
     </aside>
+  </div>
+
+  <!-- Spots browser modal -->
+  <div
+    id="spots-modal"
+    class="fixed inset-0 z-30 hidden items-center justify-center bg-black/60"
+  >
+    <div class="w-full max-w-lg max-h-[80vh] bg-slate-950 border border-slate-700 rounded-2xl flex flex-col overflow-hidden">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-slate-800">
+        <h2 class="text-sm font-semibold">Spots browser</h2>
+        <button
+          id="spots-modal-close"
+          class="text-xs px-2 py-1 rounded-lg bg-slate-800 text-slate-100 hover:bg-slate-700"
+        >
+          Close
+        </button>
+      </div>
+
+      <div class="px-4 pt-3 pb-2 space-y-2 text-[11px]">
+        <div class="flex gap-2">
+          <div class="flex-1">
+            <p class="mb-1 text-slate-300">Status</p>
+            <div class="flex gap-1">
+              <button type="button" class="yn-chip status-filter-chip yn-active" data-value="all">
+                All
+              </button>
+              <button type="button" class="yn-chip status-filter-chip" data-value="pending">
+                Pending
+              </button>
+              <button type="button" class="yn-chip status-filter-chip" data-value="completed">
+                Completed
+              </button>
+            </div>
+          </div>
+          <div class="flex-1">
+            <p class="mb-1 text-slate-300">Type</p>
+            <select
+              id="explore-filter"
+              class="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-[11px] outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
+            >
+              <option value="all">All types</option>
+              <option value="urbex">Urbex</option>
+              <option value="roofing">Roofing</option>
+              <option value="drain">Drain / Tunnel</option>
+              <option value="mixed">Mixed / both</option>
+              <option value="other">Other / not listed</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <input
+            type="text"
+            id="modal-search-input"
+            class="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
+            placeholder="Search by name, notes, location..."
+          />
+        </div>
+      </div>
+
+      <div
+        id="spots-modal-list"
+        class="flex-1 px-4 pb-4 space-y-2 overflow-y-auto text-sm"
+      ></div>
+    </div>
   </div>
 </body>
 </html>
