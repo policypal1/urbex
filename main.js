@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // panel + modal elements
   const panel = document.getElementById("side-panel");
   const panelToggle = document.getElementById("panel-toggle");
-  const openBrowserBtn = document.getElementById("open-browser");
+  const seeSpotsBtn = document.getElementById("see-spots");
   const modal = document.getElementById("spots-modal");
   const modalClose = document.getElementById("spots-modal-close");
   const modalSearchInput = document.getElementById("modal-search-input");
@@ -37,68 +37,92 @@ document.addEventListener("DOMContentLoaded", () => {
   // closed by default on mobile, open on desktop
   let panelHidden = window.innerWidth < 768;
 
-  if (panelHidden) {
-    panel.classList.add("translate-x-full");
-    if (panelToggle) panelToggle.textContent = "⮞";
-  } else {
-    panel.classList.remove("translate-x-full");
-    if (panelToggle) panelToggle.textContent = "⮜";
+  // helper: set panel visibility classes
+  function setPanelVisibility() {
+    if (!panel) return;
+
+    if (window.innerWidth >= 768) {
+      // desktop: always visible
+      panelHidden = false;
+      panel.classList.remove(
+        "translate-x-[140%]",
+        "opacity-0",
+        "pointer-events-none"
+      );
+      panel.classList.add("translate-x-0", "opacity-100", "pointer-events-auto");
+      if (panelToggle) {
+        panelToggle.style.display = "none";
+      }
+      return;
+    }
+
+    // mobile
+    if (panelToggle) {
+      panelToggle.style.display = "flex";
+    }
+
+    if (panelHidden) {
+      panel.classList.add(
+        "translate-x-[140%]",
+        "opacity-0",
+        "pointer-events-none"
+      );
+      panel.classList.remove("translate-x-0", "opacity-100", "pointer-events-auto");
+      if (panelToggle) panelToggle.textContent = "⮜"; // arrow pointing in
+    } else {
+      panel.classList.remove(
+        "translate-x-[140%]",
+        "opacity-0",
+        "pointer-events-none"
+      );
+      panel.classList.add("translate-x-0", "opacity-100", "pointer-events-auto");
+      if (panelToggle) panelToggle.textContent = "⮞"; // arrow pointing out
+    }
+
+    positionPanelToggle();
   }
 
   // helper: position the arrow toggle so that when open,
   // it sits near the left edge of the panel on mobile
   function positionPanelToggle() {
-    if (!panelToggle) return;
+    if (!panelToggle || !panel) return;
+    if (window.innerWidth >= 768) return;
 
-    // desktop: hide toggle, panel always visible
-    if (window.innerWidth >= 768) {
-      panelToggle.style.display = "none";
+    if (panelHidden) {
+      // when hidden: arrow just hugs the right edge of the screen
+      panelToggle.style.right = "1rem";
       panelToggle.style.left = "";
-      panelToggle.style.right = "";
       return;
     }
 
-    panelToggle.style.display = "flex";
+    // when open: move it to align with left side of the panel
+    const rect = panel.getBoundingClientRect();
+    const btnWidth = panelToggle.offsetWidth || 36;
+    const gap = 8; // px gap between arrow and panel
 
-    if (panelHidden) {
-      // when hidden: keep it on the right edge
-      panelToggle.style.right = "1rem";
-      panelToggle.style.left = "";
-    } else {
-      // when open: move it to align with left side of the panel
-      const rect = panel.getBoundingClientRect();
-      const btnWidth = panelToggle.offsetWidth || 36;
-      const gap = 8; // px gap between arrow and panel
+    let left = rect.left - btnWidth - gap;
+    if (left < 8) left = 8;
 
-      let left = rect.left - btnWidth - gap;
-      if (left < 8) left = 8; // don't go off-screen
-
-      panelToggle.style.left = `${left}px`;
-      panelToggle.style.right = "";
-    }
+    panelToggle.style.left = `${left}px`;
+    panelToggle.style.right = "";
   }
+
+  // init visibility
+  setPanelVisibility();
 
   // Mobile panel toggle
   if (panelToggle) {
     panelToggle.addEventListener("click", () => {
-      if (window.innerWidth >= 768) return; // desktop: panel always visible
+      if (window.innerWidth >= 768) return;
       panelHidden = !panelHidden;
-      panel.classList.toggle("translate-x-full", panelHidden);
-      panelToggle.textContent = panelHidden ? "⮞" : "⮜";
-      positionPanelToggle();
+      setPanelVisibility();
     });
   }
 
   window.addEventListener("resize", () => {
-    // recalc panelHidden on resize
-    if (window.innerWidth >= 768) {
-      panelHidden = false;
-      panel.classList.remove("translate-x-full");
-      if (panelToggle) panelToggle.textContent = "⮜";
-    } else {
-      // keep current visibility, just reposition arrow
-    }
-    positionPanelToggle();
+    // on resize, recompute mobile/desktop state
+    panelHidden = window.innerWidth < 768 ? panelHidden : false;
+    setPanelVisibility();
   });
 
   // Open / close browser modal
@@ -113,8 +137,12 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.classList.remove("flex");
   }
 
-  openBrowserBtn.addEventListener("click", openModal);
-  modalClose.addEventListener("click", closeModal);
+  if (seeSpotsBtn) {
+    seeSpotsBtn.addEventListener("click", openModal);
+  }
+  if (modalClose) {
+    modalClose.addEventListener("click", closeModal);
+  }
   // close when clicking outside card
   modal.addEventListener("click", (e) => {
     if (e.target === modal) closeModal();
@@ -189,7 +217,6 @@ document.addEventListener("DOMContentLoaded", () => {
   (async () => {
     await loadSpotsFromBackend();
     renderSpotList();
-    positionPanelToggle();
   })();
 
   // Form submit
@@ -286,17 +313,19 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Clear all (with passcode)
-  clearAllBtn.addEventListener("click", async () => {
-    const pass = prompt("Enter passcode to clear ALL spots:");
-    if (pass !== "1111") {
-      if (pass !== null) alert("Incorrect passcode.");
-      return;
-    }
+  if (clearAllBtn) {
+    clearAllBtn.addEventListener("click", async () => {
+      const pass = prompt("Enter passcode to clear ALL spots:");
+      if (pass !== "1111") {
+        if (pass !== null) alert("Incorrect passcode.");
+        return;
+      }
 
-    await deleteAllSpotsInBackend();
-    spots = [];
-    renderSpotList();
-  });
+      await deleteAllSpotsInBackend();
+      spots = [];
+      renderSpotList();
+    });
+  }
 });
 
 // ---------- Map helper ----------
