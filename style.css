@@ -10,19 +10,19 @@ body {
   border: 0;
 }
 
-/* Saved spots scrollbar */
-#spots-list::-webkit-scrollbar {
+/* Scrollbar for spot list in modal */
+#spots-modal-list::-webkit-scrollbar {
   width: 6px;
 }
-#spots-list::-webkit-scrollbar-track {
+#spots-modal-list::-webkit-scrollbar-track {
   background: #020617;
 }
-#spots-list::-webkit-scrollbar-thumb {
+#spots-modal-list::-webkit-scrollbar-thumb {
   background: #1f293b;
   border-radius: 999px;
 }
 
-/* Toggle chips (status / security / squatters / again) */
+/* Toggle chips (status / security / squatters / again / filters) */
 .yn-chip {
   flex: 1;
   display: flex;
