@@ -1,4 +1,6 @@
-const STORAGE_KEY = "urbex_spots_v4"; // bump version so old data doesn't break
+// main.js – Supabase-backed version
+
+const supabase = window.supabaseClient;
 let spots = [];
 let editingId = null;
 
@@ -57,11 +59,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Load existing spots
-  loadSpotsFromStorage();
-  renderSpotList();
+  // Load existing spots from Supabase
+  (async () => {
+    await loadSpotsFromBackend();
+    renderSpotList();
+  })();
 
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const nameEl = document.getElementById("spot-name");
@@ -85,45 +89,42 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!name || !location) return;
 
     if (editingId) {
-      // update existing spot
-      const idx = spots.findIndex((s) => s.id === editingId);
-      if (idx !== -1) {
-        spots[idx] = {
-          ...spots[idx],
-          name,
-          location,
-          tier,
-          status,
-          exploreType,
-          security,
-          squatters,
-          notes,
-          rating,
-          again,
-        };
-      }
-    } else {
-      // new spot
-      const spot = {
-        id: Date.now(),
+      // update existing spot in Supabase
+      const updated = await updateSpotInBackend(editingId, {
         name,
         location,
         tier,
         status,
-        exploreType,
+        explore_type: exploreType,
         security,
         squatters,
         notes,
         rating,
         again,
-        createdAt: new Date().toISOString(),
-      };
-      spots.push(spot);
+      });
+      if (!updated) return;
+
+      const idx = spots.findIndex((s) => s.id === editingId);
+      if (idx !== -1) spots[idx] = rowToSpot(updated);
+    } else {
+      // create new spot in Supabase
+      const created = await createSpotInBackend({
+        name,
+        location,
+        tier,
+        status,
+        explore_type: exploreType,
+        security,
+        squatters,
+        notes,
+        rating,
+        again,
+      });
+      if (!created) return;
+      spots.push(rowToSpot(created));
     }
 
-    saveSpotsToStorage();
     renderSpotList();
-
     updateMapToLocation(location);
 
     // reset form + editing state
@@ -157,15 +158,16 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  clearAllBtn.addEventListener("click", () => {
+  clearAllBtn.addEventListener("click", async () => {
     if (
-      !confirm("First check: clear ALL saved spots from this browser?") ||
+      !confirm("First check: clear ALL saved spots from the backend?") ||
       !confirm("Second check: this cannot be undone. Still clear?") ||
       !confirm("Final check: 100% sure?")
     )
       return;
+
+    await deleteAllSpotsInBackend();
     spots = [];
-    saveSpotsToStorage();
     renderSpotList();
   });
 
@@ -173,6 +175,8 @@ document.addEventListener("DOMContentLoaded", () => {
     renderSpotList();
   });
 });
+
+// ---------- Map helper ----------
 
 function updateMapToLocation(location) {
   const frame = document.getElementById("map-frame");
@@ -185,6 +189,8 @@ function updateMapToLocation(location) {
     "&output=embed";
   frame.src = url;
 }
+
+// ---------- Render list ----------
 
 function renderSpotList() {
   const list = document.getElementById("spots-list");
@@ -215,14 +221,14 @@ function renderSpotList() {
   list.innerHTML = "";
 
   filtered
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
     .forEach((spot) => {
       const div = document.createElement("div");
       div.className = "spot-card text-xs";
 
       const tierLabel = prettyTier(spot.tier);
       const statusLabel = prettyStatus(spot.status);
-      const exploreLabel = prettyExplore(spot.exploreType);
+      const exploreLabel = prettyExplore(spot.explore_type);
       const securityLabel =
         spot.security === "yes" ? "Security / cameras" : "No obvious security";
       const squattersLabel =
@@ -311,7 +317,7 @@ function renderSpotList() {
         document.getElementById("spot-name").value = spot.name;
         document.getElementById("spot-location").value = spot.location;
         document.getElementById("spot-tier").value = spot.tier;
-        document.getElementById("spot-explore").value = spot.exploreType;
+        document.getElementById("spot-explore").value = spot.explore_type;
         document.getElementById("spot-notes").value = spot.notes || "";
 
         const statusHidden = document.getElementById("spot-status-hidden");
@@ -329,14 +335,12 @@ function renderSpotList() {
         againHidden.value = spot.again || "no";
         ratingHidden.value = spot.rating || 0;
 
-        // status controls rating section
         if (spot.status === "been") {
           ratingSection.classList.remove("hidden");
         } else {
           ratingSection.classList.add("hidden");
         }
 
-        // update chips
         chips.forEach((c) => {
           if (c.dataset.group === "status") {
             c.classList.toggle("yn-active", c.dataset.value === spot.status);
@@ -351,7 +355,10 @@ function renderSpotList() {
             );
           }
           if (c.dataset.group === "again") {
-            c.classList.toggle("yn-active", c.dataset.value === (spot.again || "no"));
+            c.classList.toggle(
+              "yn-active",
+              c.dataset.value === (spot.again || "no")
+            );
           }
         });
 
@@ -363,10 +370,10 @@ function renderSpotList() {
         });
       });
 
-      // delete with 3 stages
+      // delete with 3 stages + backend delete
       const deleteBtn = div.querySelector(".delete-spot-btn");
       deleteBtn.dataset.stage = "0";
-      deleteBtn.addEventListener("click", () => {
+      deleteBtn.addEventListener("click", async () => {
         let stage = parseInt(deleteBtn.dataset.stage || "0", 10);
         stage += 1;
 
@@ -381,9 +388,10 @@ function renderSpotList() {
           return;
         }
 
-        // stage 3: actually delete
+        const ok = await deleteSpotInBackend(spot.id);
+        if (!ok) return;
+
         spots = spots.filter((s) => s.id !== spot.id);
-        saveSpotsToStorage();
         renderSpotList();
       });
 
@@ -391,22 +399,90 @@ function renderSpotList() {
     });
 }
 
-function saveSpotsToStorage() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(spots));
+// ---------- Supabase helpers ----------
+
+function rowToSpot(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    location: row.location,
+    tier: row.tier,
+    status: row.status,
+    explore_type: row.explore_type,
+    security: row.security,
+    squatters: row.squatters,
+    notes: row.notes,
+    rating: row.rating,
+    again: row.again,
+    created_at: row.created_at,
+  };
 }
 
-function loadSpotsFromStorage() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) {
-      spots = parsed;
-    }
-  } catch (err) {
-    console.error("Failed to load spots from storage", err);
+async function loadSpotsFromBackend() {
+  const { data, error } = await supabase
+    .from("spots")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error loading spots from Supabase:", error);
+    spots = [];
+    return;
+  }
+
+  spots = data.map(rowToSpot);
+}
+
+async function createSpotInBackend(payload) {
+  const { data, error } = await supabase
+    .from("spots")
+    .insert(payload)
+    .select("*")
+    .single();
+
+  if (error) {
+    console.error("Error creating spot:", error);
+    alert("Could not save spot to backend.");
+    return null;
+  }
+  return data;
+}
+
+async function updateSpotInBackend(id, payload) {
+  const { data, error } = await supabase
+    .from("spots")
+    .update(payload)
+    .eq("id", id)
+    .select("*")
+    .single();
+
+  if (error) {
+    console.error("Error updating spot:", error);
+    alert("Could not update spot.");
+    return null;
+  }
+  return data;
+}
+
+async function deleteSpotInBackend(id) {
+  const { error } = await supabase.from("spots").delete().eq("id", id);
+  if (error) {
+    console.error("Error deleting spot:", error);
+    alert("Could not delete spot.");
+    return false;
+  }
+  return true;
+}
+
+async function deleteAllSpotsInBackend() {
+  const { error } = await supabase.from("spots").delete().gt("id", 0);
+  if (error) {
+    console.error("Error clearing spots:", error);
+    alert("Could not clear spots.");
   }
 }
+
+// ---------- Misc helpers ----------
 
 function prettyTier(tier) {
   switch (tier) {
