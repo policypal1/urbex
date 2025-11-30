@@ -11,7 +11,20 @@
   <!-- Custom styles -->
   <link rel="stylesheet" href="style.css" />
 
-  <!-- App logic -->
+  <!-- Supabase client (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    // 🔑 Your real Supabase project details
+    const SUPABASE_URL = "https://cljndklondjwnvktlpwc.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsam5ka2xvbmRqd252a3RscHdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0ODE3NjYsImV4cCI6MjA4MDA1Nzc2Nn0.41UqqhR2z2gsH_4x0Pb0fzdUzZxCWVZVw-lEil3vTOk";
+
+    window.supabaseClient = supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
+  </script>
+
+  <!-- App logic (runs after supabaseClient is defined) -->
   <script defer src="main.js"></script>
 </head>
 <body class="bg-slate-950 text-slate-100">
@@ -62,7 +75,7 @@
                   Place I’ve been
                 </button>
               </div>
-              <input type="hidden" id="spot-status" value="to_go" />
+              <input type="hidden" id="spot-status-hidden" value="to_go" />
             </div>
 
             <!-- Type of explore -->
@@ -166,7 +179,6 @@
               </div>
             </div>
 
-            <input type="hidden" id="spot-status-hidden" value="to_go" />
             <input type="hidden" id="spot-security" value="no" />
             <input type="hidden" id="spot-squatters" value="no" />
             <input type="hidden" id="spot-again" value="no" />
@@ -221,7 +233,7 @@
           </div>
 
           <p class="text-[10px] text-slate-500 mt-2">
-            Saved only in this browser (localStorage). Click a spot’s “Show on map” or “Open in Maps”.
+            Backed up in Supabase. Open this site on any device and your spots will load.
           </p>
         </section>
       </div>
