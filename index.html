@@ -18,7 +18,6 @@
     const SUPABASE_ANON_KEY =
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsam5ka2xvbmRqd252a3RscHdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0ODE3NjYsImV4cCI6MjA4MDA1Nzc2Nn0.41UqqhR2z2gsH_4x0Pb0fzdUzZxCWVZVw-lEil3vTOk";
 
-    // create client from global supabase object
     window.supabaseClient = window.supabase.createClient(
       SUPABASE_URL,
       SUPABASE_ANON_KEY
@@ -50,13 +49,21 @@
       </span>
     </header>
 
+    <!-- See spots (opens browser modal) -->
+    <button
+      id="see-spots"
+      class="absolute top-3 right-3 z-10 px-3 py-1.5 rounded-full bg-slate-900/85 border border-slate-700 text-xs md:text-sm shadow-lg hover:bg-slate-800 transition"
+    >
+      See spots
+    </button>
+
     <!-- Mobile toggle button (arrow only) -->
     <button
       id="panel-toggle"
       class="md:hidden absolute top-24 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-slate-900/90 border border-slate-700 text-slate-100 shadow-lg transition-all duration-300"
       aria-label="Toggle details"
     >
-      ⮞
+      ⮜
     </button>
 
     <!-- Right-side / centered panel -->
@@ -68,7 +75,8 @@
              md:border md:border-slate-700 md:bg-slate-900/90 md:shadow-2xl
              bg-slate-900/95 border border-slate-800
              transition-transform duration-300
-             md:translate-x-0 translate-x-full"
+             md:translate-x-0 md:opacity-100 md:pointer-events-auto
+             translate-x-[140%] opacity-0 pointer-events-none"
     >
       <div class="h-full flex flex-col overflow-hidden rounded-2xl">
         <!-- Form -->
@@ -140,7 +148,7 @@
               >
                 <option value="graffiti_no_power">Graffiti (no power)</option>
                 <option value="graffiti_power">Graffiti (power)</option>
-                <option value="no_graffiti">No graffiti (power)☠️ </option>
+                <option value="no_graffiti">No graffiti (power)☠️</option>
               </select>
             </div>
 
@@ -215,35 +223,16 @@
             >
               Save spot
             </button>
-          </form>
-        </section>
 
-        <!-- Saved spots / browser button -->
-        <section class="flex-1 flex flex-col p-4 min-h-0">
-          <div class="flex items-center justify-between mb-2">
-            <h2 class="text-sm font-semibold">My spots</h2>
+            <!-- Clear all button (kept small under form) -->
             <button
+              type="button"
               id="clear-all"
-              class="text-[11px] px-2 py-1 rounded-lg border border-slate-700 text-slate-300 hover:border-red-500 hover:text-red-200 transition"
+              class="mt-2 text-[11px] px-2 py-1 rounded-lg border border-slate-700 text-slate-300 hover:border-red-500 hover:text-red-200 transition self-start"
             >
-              Clear all
+              Clear all spots
             </button>
-          </div>
-
-          <p class="text-[11px] text-slate-400 mb-3">
-            Use the browser to see every spot in a list, filter by status or type, and jump to locations.
-          </p>
-
-          <button
-            id="open-browser"
-            class="mt-auto w-full inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-xl bg-slate-100 text-slate-900 hover:bg-white transition"
-          >
-            Open spot browser
-          </button>
-
-          <p class="text-[10px] text-slate-500 mt-2">
-            Backed up in Supabase. Open this site on any device and your spots will load.
-          </p>
+          </form>
         </section>
       </div>
     </aside>
