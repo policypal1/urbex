@@ -45,6 +45,39 @@ document.addEventListener("DOMContentLoaded", () => {
     if (panelToggle) panelToggle.textContent = "⮜";
   }
 
+  // helper: position the arrow toggle so that when open,
+  // it sits near the left edge of the panel on mobile
+  function positionPanelToggle() {
+    if (!panelToggle) return;
+
+    // desktop: hide toggle, panel always visible
+    if (window.innerWidth >= 768) {
+      panelToggle.style.display = "none";
+      panelToggle.style.left = "";
+      panelToggle.style.right = "";
+      return;
+    }
+
+    panelToggle.style.display = "flex";
+
+    if (panelHidden) {
+      // when hidden: keep it on the right edge
+      panelToggle.style.right = "1rem";
+      panelToggle.style.left = "";
+    } else {
+      // when open: move it to align with left side of the panel
+      const rect = panel.getBoundingClientRect();
+      const btnWidth = panelToggle.offsetWidth || 36;
+      const gap = 8; // px gap between arrow and panel
+
+      let left = rect.left - btnWidth - gap;
+      if (left < 8) left = 8; // don't go off-screen
+
+      panelToggle.style.left = `${left}px`;
+      panelToggle.style.right = "";
+    }
+  }
+
   // Mobile panel toggle
   if (panelToggle) {
     panelToggle.addEventListener("click", () => {
@@ -52,8 +85,21 @@ document.addEventListener("DOMContentLoaded", () => {
       panelHidden = !panelHidden;
       panel.classList.toggle("translate-x-full", panelHidden);
       panelToggle.textContent = panelHidden ? "⮞" : "⮜";
+      positionPanelToggle();
     });
   }
+
+  window.addEventListener("resize", () => {
+    // recalc panelHidden on resize
+    if (window.innerWidth >= 768) {
+      panelHidden = false;
+      panel.classList.remove("translate-x-full");
+      if (panelToggle) panelToggle.textContent = "⮜";
+    } else {
+      // keep current visibility, just reposition arrow
+    }
+    positionPanelToggle();
+  });
 
   // Open / close browser modal
   function openModal() {
@@ -143,6 +189,7 @@ document.addEventListener("DOMContentLoaded", () => {
   (async () => {
     await loadSpotsFromBackend();
     renderSpotList();
+    positionPanelToggle();
   })();
 
   // Form submit
@@ -453,19 +500,21 @@ function renderSpotList() {
       });
 
       // delete with passcode
-      div.querySelector(".delete-spot-btn").addEventListener("click", async () => {
-        const pass = prompt("Enter passcode to delete this spot:");
-        if (pass !== "1111") {
-          if (pass !== null) alert("Incorrect passcode.");
-          return;
-        }
+      div
+        .querySelector(".delete-spot-btn")
+        .addEventListener("click", async () => {
+          const pass = prompt("Enter passcode to delete this spot:");
+          if (pass !== "1111") {
+            if (pass !== null) alert("Incorrect passcode.");
+            return;
+          }
 
-        const ok = await deleteSpotInBackend(spot.id);
-        if (!ok) return;
+          const ok = await deleteSpotInBackend(spot.id);
+          if (!ok) return;
 
-        spots = spots.filter((s) => s.id !== spot.id);
-        renderSpotList();
-      });
+          spots = spots.filter((s) => s.id !== spot.id);
+          renderSpotList();
+        });
 
       list.appendChild(div);
     });
