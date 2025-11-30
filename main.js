@@ -1,4 +1,4 @@
-// main.js – Supabase-backed version
+// main.js – Supabase-backed version with passcode delete + mobile panel
 
 const supabase = window.supabaseClient;
 let spots = [];
@@ -20,6 +20,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const chips = document.querySelectorAll(".yn-chip");
   const ratingChips = document.querySelectorAll(".rating-chip");
 
+  const panel = document.getElementById("side-panel");
+  const panelToggle = document.getElementById("panel-toggle");
+  let panelHidden = false;
+
+  // Mobile panel toggle
+  if (panelToggle) {
+    panelToggle.addEventListener("click", () => {
+      if (window.innerWidth >= 768) return; // desktop: panel always visible
+      panelHidden = !panelHidden;
+      panel.classList.toggle("translate-x-full", panelHidden);
+      panelToggle.textContent = panelHidden ? "⮞" : "⮜";
+    });
+  }
+
   // Chip logic (status, security, squatters, again)
   chips.forEach((chip) => {
     chip.addEventListener("click", () => {
@@ -35,8 +49,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (group === "status") {
         statusHidden.value = value;
-        // show rating only when it's a place you've been
-        if (value === "been") {
+        // show rating only when it's a completed visit
+        if (value === "completed") {
           ratingSection.classList.remove("hidden");
         } else {
           ratingSection.classList.add("hidden");
@@ -83,13 +97,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const squatters = squattersHidden.value;
     const notes = notesEl.value.trim();
     const rating =
-      status === "been" ? parseInt(ratingHidden.value || "0", 10) || 0 : 0;
+      status === "completed"
+        ? parseInt(ratingHidden.value || "0", 10) || 0
+        : 0;
     const again = againHidden.value;
 
     if (!name || !location) return;
 
     if (editingId) {
-      // update existing spot in Supabase
       const updated = await updateSpotInBackend(editingId, {
         name,
         location,
@@ -107,7 +122,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const idx = spots.findIndex((s) => s.id === editingId);
       if (idx !== -1) spots[idx] = rowToSpot(updated);
     } else {
-      // create new spot in Supabase
       const created = await createSpotInBackend({
         name,
         location,
@@ -133,7 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
     submitBtn.textContent = "Save spot";
 
     // reset hidden/defaults
-    statusHidden.value = "to_go";
+    statusHidden.value = "pending";
     securityHidden.value = "no";
     squattersHidden.value = "no";
     againHidden.value = "no";
@@ -144,7 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // reset chips
     chips.forEach((c) => {
       if (c.dataset.group === "status") {
-        c.classList.toggle("yn-active", c.dataset.value === "to_go");
+        c.classList.toggle("yn-active", c.dataset.value === "pending");
       }
       if (c.dataset.group === "security") {
         c.classList.toggle("yn-active", c.dataset.value === "no");
@@ -159,12 +173,11 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   clearAllBtn.addEventListener("click", async () => {
-    if (
-      !confirm("First check: clear ALL saved spots from the backend?") ||
-      !confirm("Second check: this cannot be undone. Still clear?") ||
-      !confirm("Final check: 100% sure?")
-    )
+    const pass = prompt("Enter passcode to clear ALL spots:");
+    if (pass !== "1111") {
+      if (pass !== null) alert("Incorrect passcode.");
       return;
+    }
 
     await deleteAllSpotsInBackend();
     spots = [];
@@ -235,7 +248,7 @@ function renderSpotList() {
         spot.squatters === "yes" ? "Squatters likely" : "Squatters unlikely";
 
       let ratingLine = "";
-      if (spot.status === "been" && spot.rating && spot.rating > 0) {
+      if (spot.status === "completed" && spot.rating && spot.rating > 0) {
         const againText =
           spot.again === "yes" ? "Would go again" : "Wouldn’t go again";
         ratingLine = `Rating: ${spot.rating}/5 · ${againText}`;
@@ -285,7 +298,7 @@ function renderSpotList() {
             Edit
           </button>
           <button class="text-[11px] px-2 py-1 rounded-lg border border-slate-700 text-slate-300 hover:border-red-500 hover:text-red-200 transition delete-spot-btn">
-            Delete (3 taps)
+            Delete
           </button>
         </div>
       `;
@@ -335,7 +348,7 @@ function renderSpotList() {
         againHidden.value = spot.again || "no";
         ratingHidden.value = spot.rating || 0;
 
-        if (spot.status === "been") {
+        if (spot.status === "completed") {
           ratingSection.classList.remove("hidden");
         } else {
           ratingSection.classList.add("hidden");
@@ -370,21 +383,12 @@ function renderSpotList() {
         });
       });
 
-      // delete with 3 stages + backend delete
+      // delete with passcode
       const deleteBtn = div.querySelector(".delete-spot-btn");
-      deleteBtn.dataset.stage = "0";
       deleteBtn.addEventListener("click", async () => {
-        let stage = parseInt(deleteBtn.dataset.stage || "0", 10);
-        stage += 1;
-
-        if (stage < 3) {
-          deleteBtn.dataset.stage = String(stage);
-          if (stage === 1) {
-            deleteBtn.textContent = "Confirm delete (1/3)";
-          } else if (stage === 2) {
-            deleteBtn.textContent = "Really? (2/3)";
-          }
-          deleteBtn.classList.add("border-red-500", "text-red-200");
+        const pass = prompt("Enter passcode to delete this spot:");
+        if (pass !== "1111") {
+          if (pass !== null) alert("Incorrect passcode.");
           return;
         }
 
@@ -486,12 +490,14 @@ async function deleteAllSpotsInBackend() {
 
 function prettyTier(tier) {
   switch (tier) {
+    case "no_power":
+      return "No power";
     case "graffiti_no_power":
-      return "Graffiti · no power";
+      return "Graffiti (no power)";
     case "graffiti_power":
-      return "Graffiti · has power";
-    case "graffiti_plus_power":
-      return "Graffiti++ · power";
+      return "Graffiti (power)";
+    case "no_graffiti":
+      return "No graffiti";
     default:
       return tier;
   }
@@ -499,10 +505,10 @@ function prettyTier(tier) {
 
 function prettyStatus(status) {
   switch (status) {
-    case "to_go":
-      return "Place to go";
-    case "been":
-      return "Place I’ve been";
+    case "pending":
+      return "Pending visit";
+    case "completed":
+      return "Completed visit";
     default:
       return status;
   }
@@ -510,16 +516,16 @@ function prettyStatus(status) {
 
 function prettyExplore(type) {
   switch (type) {
+    case "urbex":
+      return "Urbex (abandoned)";
     case "roofing":
       return "Roofing";
-    case "urbex":
-      return "Abandoned building";
-    case "tunnel":
-      return "Tunnel / drain";
-    case "rooftop_crane":
-      return "Rooftop + crane";
+    case "drain":
+      return "Drain / Tunnel";
+    case "mixed":
+      return "Mixed / both";
     case "other":
-      return "Other / mixed";
+      return "Other / not listed";
     default:
       return type;
   }
