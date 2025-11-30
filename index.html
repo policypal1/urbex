@@ -41,24 +41,21 @@
       ></iframe>
     </div>
 
-    <!-- Top banner + See spots (centered group) -->
-    <header class="absolute top-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3">
-      <!-- Urbex badge -->
-      <div class="px-4 py-2 rounded-full bg-slate-900/85 border border-slate-700 shadow-lg flex items-center gap-3 text-xs md:text-sm">
-        <span class="font-semibold">Urbex Log · Salem</span>
-        <span class="text-slate-400 hidden md:inline">
-          Private urbex map.
-        </span>
-      </div>
-
-      <!-- See spots button with amber outline -->
-      <button
-        id="see-spots"
-        class="px-3 py-1.5 rounded-full bg-slate-900/85 border border-amber-400 text-amber-300 text-xs md:text-sm shadow-lg hover:bg-slate-800 hover:border-amber-300 hover:text-amber-200 transition"
-      >
-        See spots
-      </button>
+    <!-- Top banner -->
+    <header class="absolute top-3 left-1/2 -translate-x-1/2 z-10 px-4 py-2 rounded-full bg-slate-900/85 border border-slate-700 shadow-lg flex items-center gap-3 text-xs md:text-sm">
+      <span class="font-semibold">Urbex Log · Salem</span>
+      <span class="text-slate-400 hidden md:inline">
+        Private urbex map.
+      </span>
     </header>
+
+    <!-- See spots (opens browser modal) -->
+    <button
+      id="see-spots"
+      class="absolute top-3 right-3 z-10 px-3 py-1.5 rounded-full bg-slate-900/85 border border-amber-400 text-amber-300 text-xs md:text-sm shadow-lg hover:bg-slate-800 hover:border-amber-300 hover:text-amber-200 transition"
+    >
+      See spots
+    </button>
 
     <!-- Mobile toggle button (arrow only) -->
     <button
