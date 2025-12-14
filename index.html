@@ -5,13 +5,9 @@
   <title>Urbex Log · Salem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Custom styles -->
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Supabase client (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script>
     const SUPABASE_URL = "https://cljndklondjwnvktlpwc.supabase.co";
@@ -24,75 +20,78 @@
     );
   </script>
 
-  <!-- App logic -->
   <script defer src="main.js"></script>
 </head>
 
 <body class="bg-slate-950 text-slate-100">
-  <!-- Full-screen map -->
   <div class="h-screen w-screen relative overflow-hidden">
-    <div class="absolute inset-0">
-  <iframe
-    id="map-frame"
-    class="urbex-map-iframe"
-    loading="lazy"
-    allowfullscreen
-    referrerpolicy="no-referrer-when-downgrade"
-    src="https://www.google.com/maps/d/u/0/embed?mid=1MOYgFpi4sJJcnl8laOGAkyyL14zJBFA"
-  ></iframe>
-</div>
 
-    <!-- Desktop: unchanged look -->
+    <!-- MAP -->
+    <div class="absolute inset-0">
+      <iframe
+        id="map-frame"
+        class="urbex-map-iframe"
+        loading="lazy"
+        allowfullscreen
+        referrerpolicy="no-referrer-when-downgrade"
+        src="https://www.google.com/maps/d/u/0/embed?mid=1MOYgFpi4sJJcnl8laOGAkyyL14zJBFA"
+      ></iframe>
+    </div>
+
+    <!-- PRIVACY BAR (covers My Maps header + your name inside iframe) -->
+    <div class="privacy-bar"></div>
+
+    <!-- LEGEND PILL -->
+    <div class="legend-pill">
+      <span class="dot dot-black"></span><span>Urbex</span>
+      <span class="sep">•</span>
+      <span class="dot dot-red"></span><span>Roofing</span>
+    </div>
+
+    <!-- DESKTOP CONTROLS (unchanged behavior, just sits on the privacy bar nicely) -->
     <header
-      class="hidden md:flex absolute top-3 left-1/2 -translate-x-1/2 z-10 px-4 py-2 rounded-full bg-slate-900/85 border border-slate-700 shadow-lg items-center gap-3 text-xs md:text-sm"
+      class="hidden md:flex absolute top-3 left-1/2 -translate-x-1/2 z-40 px-4 py-2 rounded-full bg-slate-900/85 border border-slate-700 shadow-lg items-center gap-3 text-xs md:text-sm"
     >
       <span class="font-semibold">Urbex Log · Salem</span>
-      <span class="text-slate-400 hidden md:inline">
-        Private urbex map.
-      </span>
+      <span class="text-slate-400 hidden md:inline">Private urbex map.</span>
     </header>
 
     <button
       id="see-spots"
-      class="hidden md:block absolute top-3 right-3 z-10 px-3 py-1.5 rounded-full bg-slate-900/85 border border-amber-400 text-amber-300 text-xs md:text-sm shadow-lg hover:bg-slate-800 hover:border-amber-300 hover:text-amber-200 transition"
+      class="hidden md:block absolute top-3 right-3 z-40 px-3 py-1.5 rounded-full bg-slate-900/85 border border-amber-400 text-amber-300 text-xs md:text-sm shadow-lg hover:bg-slate-800 hover:border-amber-300 hover:text-amber-200 transition"
     >
       See spots
     </button>
 
-    <!-- Mobile: connected bar (title + see spots + toggle) -->
-    <div
-      class="md:hidden absolute top-3 left-1/2 -translate-x-1/2 z-20 flex items-center overflow-hidden rounded-full border border-slate-700 bg-slate-900/90 shadow-lg"
-    >
-      <div class="px-3 py-2 text-xs font-semibold whitespace-nowrap">
-        Urbex Log · Salem
-      </div>
+    <!-- MOBILE TOP BAR (bigger buttons + centered map title) -->
+    <div class="md:hidden mobile-topbar z-40">
+      <button
+        id="add-spot-mobile"
+        class="mobile-topbar-btn mobile-topbar-btn-dark"
+        type="button"
+      >
+        Add spot
+      </button>
 
-      <div class="h-8 w-px bg-slate-700/80"></div>
+      <div class="mobile-topbar-title">
+        SALEM URBEX
+      </div>
 
       <button
         id="see-spots-mobile"
-        class="px-3 py-2 text-xs text-amber-300 hover:text-amber-200 hover:bg-slate-800/70 transition whitespace-nowrap"
+        class="mobile-topbar-btn mobile-topbar-btn-amber"
+        type="button"
       >
         See spots
       </button>
-
-      <div class="h-8 w-px bg-slate-700/80"></div>
-
-      <button
-        id="panel-toggle"
-        class="w-10 h-9 flex items-center justify-center text-slate-100 hover:bg-slate-800/70 transition"
-        aria-label="Toggle details"
-      >
-        ⮞
-      </button>
     </div>
 
-    <!-- Centered on mobile, docked right on desktop -->
+    <!-- SIDE PANEL (kept for now; mobile button opens it) -->
     <aside
       id="side-panel"
       class="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2
              md:left-auto md:right-6 md:-translate-y-1/2 md:translate-x-0
-             w-[calc(100%-2rem)] max-w-sm z-10
+             w-[calc(100%-2rem)] max-w-sm z-30
              rounded-2xl
              md:border md:border-slate-700 md:bg-slate-900/90 md:shadow-2xl
              bg-slate-900/95 border border-slate-800
@@ -103,7 +102,6 @@
              translate-x-[140%] opacity-0 pointer-events-none"
     >
       <div class="flex flex-col overflow-hidden rounded-2xl">
-        <!-- Form -->
         <section class="p-4 border-b border-slate-800">
           <h2 class="text-base md:text-lg font-semibold mb-1">Add a spot</h2>
           <p class="text-[11px] text-slate-400 mb-3">
@@ -111,7 +109,6 @@
           </p>
 
           <form id="spot-form" class="flex flex-col gap-2">
-            <!-- Visit status -->
             <div>
               <p class="block text-xs text-slate-300 mb-1">Visit status</p>
               <div class="flex gap-1 text-[11px]">
@@ -125,7 +122,6 @@
               <input type="hidden" id="spot-status-hidden" value="pending" />
             </div>
 
-            <!-- Type of explore -->
             <div>
               <label class="block text-xs text-slate-300 mb-1">Type of explore</label>
               <select
@@ -151,9 +147,7 @@
             </div>
 
             <div>
-              <label class="block text-xs text-slate-300 mb-1">
-                Location / link
-              </label>
+              <label class="block text-xs text-slate-300 mb-1">Location / link</label>
               <input
                 type="text"
                 id="spot-location"
@@ -163,7 +157,6 @@
               />
             </div>
 
-            <!-- Status of place -->
             <div>
               <label class="block text-xs text-slate-300 mb-1">Status of place</label>
               <select
@@ -176,7 +169,6 @@
               </select>
             </div>
 
-            <!-- Rating & go-again (for completed) -->
             <div id="rating-section" class="text-[11px] mt-1 hidden">
               <p class="text-slate-300 mb-1">Rating (1–5) & would go again</p>
               <div class="flex items-center gap-2 mb-1">
@@ -199,28 +191,19 @@
               </div>
             </div>
 
-            <!-- Yes / no toggles -->
             <div class="grid grid-cols-2 gap-2 text-[11px]">
               <div>
                 <p class="mb-1 text-slate-300">Security / cameras</p>
                 <div class="flex gap-1">
-                  <button type="button" class="yn-chip" data-group="security" data-value="yes">
-                    Yes
-                  </button>
-                  <button type="button" class="yn-chip yn-active" data-group="security" data-value="no">
-                    No / unknown
-                  </button>
+                  <button type="button" class="yn-chip" data-group="security" data-value="yes">Yes</button>
+                  <button type="button" class="yn-chip yn-active" data-group="security" data-value="no">No / unknown</button>
                 </div>
               </div>
               <div>
                 <p class="mb-1 text-slate-300">Squatters</p>
                 <div class="flex gap-1">
-                  <button type="button" class="yn-chip" data-group="squatters" data-value="yes">
-                    Yes / likely
-                  </button>
-                  <button type="button" class="yn-chip yn-active" data-group="squatters" data-value="no">
-                    No / unlikely
-                  </button>
+                  <button type="button" class="yn-chip" data-group="squatters" data-value="yes">Yes / likely</button>
+                  <button type="button" class="yn-chip yn-active" data-group="squatters" data-value="no">No / unlikely</button>
                 </div>
               </div>
             </div>
@@ -248,7 +231,6 @@
               Save spot
             </button>
 
-            <!-- Clear all button -->
             <button
               type="button"
               id="clear-all"
@@ -260,72 +242,55 @@
         </section>
       </div>
     </aside>
-  </div>
 
-  <!-- Spots browser modal -->
-  <div
-    id="spots-modal"
-    class="fixed inset-0 z-30 hidden items-center justify-center bg-black/60"
-  >
-    <div class="w-full max-w-lg max-h-[80vh] bg-slate-950 border border-slate-700 rounded-2xl flex flex-col overflow-hidden min-h-0">
-      <div class="flex items-center justify-between px-4 py-3 border-b border-slate-800">
-        <h2 class="text-sm font-semibold">Spots browser</h2>
-        <button
-          id="spots-modal-close"
-          class="text-xs px-2 py-1 rounded-lg bg-slate-800 text-slate-100 hover:bg-slate-700"
-        >
-          Close
-        </button>
-      </div>
+    <!-- Spots browser modal -->
+    <div id="spots-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60">
+      <div class="w-full max-w-lg max-h-[80vh] bg-slate-950 border border-slate-700 rounded-2xl flex flex-col overflow-hidden min-h-0">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-800">
+          <h2 class="text-sm font-semibold">Spots browser</h2>
+          <button id="spots-modal-close" class="text-xs px-2 py-1 rounded-lg bg-slate-800 text-slate-100 hover:bg-slate-700">
+            Close
+          </button>
+        </div>
 
-      <div class="px-4 pt-3 pb-2 space-y-2 text-[11px]">
-        <div class="flex gap-2">
-          <div class="flex-1 min-w-0">
-            <p class="mb-1 text-slate-300">Status</p>
-            <div class="flex gap-1">
-              <button type="button" class="yn-chip status-filter-chip yn-active" data-value="all">
-                All
-              </button>
-              <button type="button" class="yn-chip status-filter-chip" data-value="pending">
-                Pending
-              </button>
-              <button type="button" class="yn-chip status-filter-chip" data-value="completed">
-                Completed
-              </button>
+        <div class="px-4 pt-3 pb-2 space-y-2 text-[11px]">
+          <div class="flex gap-2">
+            <div class="flex-1 min-w-0">
+              <p class="mb-1 text-slate-300">Status</p>
+              <div class="flex gap-1">
+                <button type="button" class="yn-chip status-filter-chip yn-active" data-value="all">All</button>
+                <button type="button" class="yn-chip status-filter-chip" data-value="pending">Pending</button>
+                <button type="button" class="yn-chip status-filter-chip" data-value="completed">Completed</button>
+              </div>
+            </div>
+
+            <div class="flex-1 min-w-0">
+              <p class="mb-1 text-slate-300">Type</p>
+              <select id="explore-filter" class="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-[11px] outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100">
+                <option value="all">All types</option>
+                <option value="urbex">Urbex</option>
+                <option value="roofing">Roofing</option>
+                <option value="drain">Drain / Tunnel</option>
+                <option value="mixed">Mixed / both</option>
+                <option value="other">Other / not listed</option>
+              </select>
             </div>
           </div>
 
-          <div class="flex-1 min-w-0">
-            <p class="mb-1 text-slate-300">Type</p>
-            <select
-              id="explore-filter"
-              class="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-[11px] outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
-            >
-              <option value="all">All types</option>
-              <option value="urbex">Urbex</option>
-              <option value="roofing">Roofing</option>
-              <option value="drain">Drain / Tunnel</option>
-              <option value="mixed">Mixed / both</option>
-              <option value="other">Other / not listed</option>
-            </select>
+          <div>
+            <input
+              type="text"
+              id="modal-search-input"
+              class="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
+              placeholder="Search by name, notes, location..."
+            />
           </div>
         </div>
 
-        <div>
-          <input
-            type="text"
-            id="modal-search-input"
-            class="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
-            placeholder="Search by name, notes, location..."
-          />
-        </div>
+        <div id="spots-modal-list" class="flex-1 min-h-0 px-4 pb-4 space-y-2 overflow-y-auto overscroll-contain text-sm"></div>
       </div>
-
-      <div
-        id="spots-modal-list"
-        class="flex-1 min-h-0 px-4 pb-4 space-y-2 overflow-y-auto overscroll-contain text-sm"
-      ></div>
     </div>
+
   </div>
 </body>
 </html>
