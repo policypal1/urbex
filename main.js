@@ -1,10 +1,7 @@
-// main.js – Supabase-backed with passcode delete + mobile panel + spot browser modal
-
 const supabase = window.supabaseClient;
 let spots = [];
 let editingId = null;
 
-// filters for the browser modal
 let filterStatus = "all";
 let filterExplore = "all";
 let filterSearch = "";
@@ -24,12 +21,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const chips = document.querySelectorAll(".yn-chip");
   const ratingChips = document.querySelectorAll(".rating-chip");
 
-  // panel + modal elements
   const panel = document.getElementById("side-panel");
-  const panelToggle = document.getElementById("panel-toggle");
 
   const seeSpotsBtnDesktop = document.getElementById("see-spots");
   const seeSpotsBtnMobile = document.getElementById("see-spots-mobile");
+  const addSpotMobileBtn = document.getElementById("add-spot-mobile");
 
   const modal = document.getElementById("spots-modal");
   const modalClose = document.getElementById("spots-modal-close");
@@ -37,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const statusFilterChips = document.querySelectorAll(".status-filter-chip");
   const exploreFilterSelect = document.getElementById("explore-filter");
 
-  // closed by default on mobile, open on desktop
+  // mobile panel state
   let panelHidden = window.innerWidth < 768;
 
   function closeModal() {
@@ -53,83 +49,55 @@ document.addEventListener("DOMContentLoaded", () => {
     renderSpotList();
   }
 
-  // helper: set panel visibility classes (only matters on mobile)
   function setPanelVisibility() {
     if (!panel) return;
 
+    // desktop: always visible
     if (window.innerWidth >= 768) {
       panelHidden = false;
-
-      if (panelToggle) panelToggle.style.display = "none";
-
-      panel.classList.remove(
-        "translate-x-[140%]",
-        "opacity-0",
-        "pointer-events-none"
-      );
-      panel.classList.add(
-        "translate-x-[-50%]",
-        "opacity-100",
-        "pointer-events-auto"
-      );
+      panel.classList.remove("translate-x-[140%]", "opacity-0", "pointer-events-none");
+      panel.classList.add("translate-x-[-50%]", "opacity-100", "pointer-events-auto");
       return;
     }
 
-    if (panelToggle) {
-      panelToggle.style.display = "flex";
-      panelToggle.textContent = panelHidden ? "⮜" : "⮞";
-    }
-
+    // mobile: hidden by default, opened by Add spot button
     if (panelHidden) {
-      panel.classList.add(
-        "translate-x-[140%]",
-        "opacity-0",
-        "pointer-events-none"
-      );
-      panel.classList.remove(
-        "translate-x-[-50%]",
-        "opacity-100",
-        "pointer-events-auto"
-      );
+      panel.classList.add("translate-x-[140%]", "opacity-0", "pointer-events-none");
+      panel.classList.remove("translate-x-[-50%]", "opacity-100", "pointer-events-auto");
     } else {
-      panel.classList.remove(
-        "translate-x-[140%]",
-        "opacity-0",
-        "pointer-events-none"
-      );
-      panel.classList.add(
-        "translate-x-[-50%]",
-        "opacity-100",
-        "pointer-events-auto"
-      );
+      panel.classList.remove("translate-x-[140%]", "opacity-0", "pointer-events-none");
+      panel.classList.add("translate-x-[-50%]", "opacity-100", "pointer-events-auto");
     }
   }
 
-  // init visibility
   setPanelVisibility();
-
-  // Mobile panel toggle
-  if (panelToggle) {
-    panelToggle.addEventListener("click", () => {
-      if (window.innerWidth >= 768) return;
-      panelHidden = !panelHidden;
-      setPanelVisibility();
-    });
-  }
 
   window.addEventListener("resize", () => {
     if (window.innerWidth >= 768) panelHidden = false;
     setPanelVisibility();
   });
 
-  // open modal buttons (desktop + mobile)
+  // Mobile: Add spot opens your UI (right now it opens the existing panel)
+  if (addSpotMobileBtn) {
+    addSpotMobileBtn.addEventListener("click", () => {
+      // If you want to open YOUR custom UI instead:
+      // 1) create a div modal for it
+      // 2) show it here instead of the panel
+      panelHidden = false;
+      setPanelVisibility();
+
+      // optional: scroll panel to top
+      if (panel) panel.scrollTop = 0;
+    });
+  }
+
+  // See spots (both)
   if (seeSpotsBtnDesktop) seeSpotsBtnDesktop.addEventListener("click", openModal);
   if (seeSpotsBtnMobile) seeSpotsBtnMobile.addEventListener("click", openModal);
 
-  // close modal button
+  // Close modal
   if (modalClose) modalClose.addEventListener("click", closeModal);
 
-  // close when clicking outside card
   if (modal) {
     modal.addEventListener("click", (e) => {
       if (e.target === modal) closeModal();
@@ -139,12 +107,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Filter: status
   statusFilterChips.forEach((chip) => {
     chip.addEventListener("click", () => {
-      const value = chip.dataset.value;
-      filterStatus = value;
-
+      filterStatus = chip.dataset.value;
       statusFilterChips.forEach((c) => c.classList.remove("yn-active"));
       chip.classList.add("yn-active");
-
       renderSpotList();
     });
   });
@@ -165,10 +130,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Chip logic (status, security, squatters, again) for the form
+  // Chip logic (status, security, squatters, again)
   chips.forEach((chip) => {
     const group = chip.dataset.group;
-    if (!group) return; // filter chips don't have data-group
+    if (!group) return;
 
     chip.addEventListener("click", () => {
       const value = chip.dataset.value;
@@ -183,23 +148,20 @@ document.addEventListener("DOMContentLoaded", () => {
         if (value === "completed") ratingSection.classList.remove("hidden");
         else ratingSection.classList.add("hidden");
       }
-
       if (group === "security") securityHidden.value = value;
       if (group === "squatters") squattersHidden.value = value;
       if (group === "again") againHidden.value = value;
     });
   });
 
-  // Rating chips 1–5
+  // Rating chips
   ratingChips.forEach((chip) => {
     chip.addEventListener("click", () => {
-      const value = chip.dataset.value;
-      ratingHidden.value = value;
+      ratingHidden.value = chip.dataset.value;
       ratingChips.forEach((c) => c.classList.toggle("rating-active", c === chip));
     });
   });
 
-  // Load existing spots from Supabase
   (async () => {
     await loadSpotsFromBackend();
     renderSpotList();
@@ -209,24 +171,16 @@ document.addEventListener("DOMContentLoaded", () => {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const nameEl = document.getElementById("spot-name");
-    const locEl = document.getElementById("spot-location");
-    const tierEl = document.getElementById("spot-tier");
-    const exploreEl = document.getElementById("spot-explore");
-    const notesEl = document.getElementById("spot-notes");
-
-    const name = nameEl.value.trim();
-    const location = locEl.value.trim();
-    const tier = tierEl.value;
+    const name = document.getElementById("spot-name").value.trim();
+    const location = document.getElementById("spot-location").value.trim();
+    const tier = document.getElementById("spot-tier").value;
     const status = statusHidden.value;
-    const exploreType = exploreEl.value;
+    const exploreType = document.getElementById("spot-explore").value;
     const security = securityHidden.value;
     const squatters = squattersHidden.value;
-    const notes = notesEl.value.trim();
+    const notes = document.getElementById("spot-notes").value.trim();
     const rating =
-      status === "completed"
-        ? parseInt(ratingHidden.value || "0", 10) || 0
-        : 0;
+      status === "completed" ? (parseInt(ratingHidden.value || "0", 10) || 0) : 0;
     const again = againHidden.value;
 
     if (!name || !location) return;
@@ -245,7 +199,6 @@ document.addEventListener("DOMContentLoaded", () => {
         again,
       });
       if (!updated) return;
-
       const idx = spots.findIndex((s) => s.id === editingId);
       if (idx !== -1) spots[idx] = rowToSpot(updated);
     } else {
@@ -266,9 +219,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     renderSpotList();
-    updateMapToLocation(location);
 
-    // reset form + editing state
+    // reset
     form.reset();
     editingId = null;
     submitBtn.textContent = "Save spot";
@@ -280,17 +232,9 @@ document.addEventListener("DOMContentLoaded", () => {
     ratingHidden.value = "0";
     ratingSection.classList.add("hidden");
     ratingChips.forEach((c) => c.classList.remove("rating-active"));
-
-    chips.forEach((c) => {
-      const group = c.dataset.group;
-      if (group === "status") c.classList.toggle("yn-active", c.dataset.value === "pending");
-      if (group === "security") c.classList.toggle("yn-active", c.dataset.value === "no");
-      if (group === "squatters") c.classList.toggle("yn-active", c.dataset.value === "no");
-      if (group === "again") c.classList.toggle("yn-active", c.dataset.value === "no");
-    });
   });
 
-  // Clear all (with passcode)
+  // Clear all
   if (clearAllBtn) {
     clearAllBtn.addEventListener("click", async () => {
       const pass = prompt("Enter passcode to clear ALL spots:");
@@ -298,54 +242,37 @@ document.addEventListener("DOMContentLoaded", () => {
         if (pass !== null) alert("Incorrect passcode.");
         return;
       }
-
       await deleteAllSpotsInBackend();
       spots = [];
       renderSpotList();
     });
   }
 
-  // expose for inner functions
+  // Expose modal close for list buttons
   window.__closeSpotsModal = closeModal;
+
+  // Allow you to hook your own UI later:
+  window.__openAddSpotUI = () => {
+    panelHidden = false;
+    setPanelVisibility();
+  };
 });
 
-// ---------- Map helper ----------
-function updateMapToLocation(location) {
-  const frame = document.getElementById("map-frame");
-  if (!frame) return;
-  const loc = location.trim();
-  if (!loc) return;
-
-  const url =
-    "https://www.google.com/maps?q=" +
-    encodeURIComponent(loc) +
-    "&output=embed";
-
-  frame.src = url;
-}
-
-// ---------- Render list in modal ----------
 function renderSpotList() {
   const list = document.getElementById("spots-modal-list");
   if (!list) return;
 
   let filtered = spots.slice();
 
-  if (filterStatus !== "all") {
-    filtered = filtered.filter((s) => s.status === filterStatus);
-  }
-  if (filterExplore !== "all") {
-    filtered = filtered.filter((s) => s.explore_type === filterExplore);
-  }
+  if (filterStatus !== "all") filtered = filtered.filter((s) => s.status === filterStatus);
+  if (filterExplore !== "all") filtered = filtered.filter((s) => s.explore_type === filterExplore);
 
   if (filterSearch) {
-    filtered = filtered.filter((s) => {
-      return (
-        s.name.toLowerCase().includes(filterSearch) ||
-        s.location.toLowerCase().includes(filterSearch) ||
-        (s.notes || "").toLowerCase().includes(filterSearch)
-      );
-    });
+    filtered = filtered.filter((s) =>
+      s.name.toLowerCase().includes(filterSearch) ||
+      s.location.toLowerCase().includes(filterSearch) ||
+      (s.notes || "").toLowerCase().includes(filterSearch)
+    );
   }
 
   if (!filtered.length) {
@@ -367,16 +294,6 @@ function renderSpotList() {
       const tierLabel = prettyTier(spot.tier);
       const statusLabel = prettyStatus(spot.status);
       const exploreLabel = prettyExplore(spot.explore_type);
-      const securityLabel =
-        spot.security === "yes" ? "Security / cameras" : "No obvious security";
-      const squattersLabel =
-        spot.squatters === "yes" ? "Squatters likely" : "Squatters unlikely";
-
-      let ratingLine = "";
-      if (spot.status === "completed" && spot.rating && spot.rating > 0) {
-        const againText = spot.again === "yes" ? "Would go again" : "Wouldn’t go again";
-        ratingLine = `Rating: ${spot.rating}/5 · ${againText}`;
-      }
 
       div.innerHTML = `
         <div class="flex items-center justify-between gap-2 mb-1">
@@ -385,34 +302,12 @@ function renderSpotList() {
             ${escapeHtml(statusLabel)}
           </span>
         </div>
-        <p class="text-[11px] text-slate-400 truncate mb-1">
-          ${escapeHtml(spot.location)}
-        </p>
-        <p class="text-[11px] text-slate-300 mb-1">
-          ${escapeHtml(exploreLabel)} · ${escapeHtml(tierLabel)}
-        </p>
-        <p class="text-[11px] text-slate-300">
-          • ${escapeHtml(securityLabel)}<br/>
-          • ${escapeHtml(squattersLabel)}
-        </p>
-        ${
-          ratingLine
-            ? `<p class="mt-1 text-[11px] text-amber-200">${escapeHtml(ratingLine)}</p>`
-            : ""
-        }
-        ${
-          spot.notes
-            ? `<p class="mt-1 text-[11px] text-slate-200 whitespace-pre-wrap max-h-16 overflow-hidden">${escapeHtml(
-                spot.notes
-              )}</p>`
-            : ""
-        }
+        <p class="text-[11px] text-slate-400 truncate mb-1">${escapeHtml(spot.location)}</p>
+        <p class="text-[11px] text-slate-300 mb-1">${escapeHtml(exploreLabel)} · ${escapeHtml(tierLabel)}</p>
+
         <div class="flex flex-wrap gap-2 mt-2">
-          <button class="text-[11px] px-2 py-1 rounded-lg bg-slate-100 text-slate-900 hover:bg-white transition show-on-map-btn">
+          <button class="text-[11px] px-2 py-1 rounded-lg bg-slate-100 text-slate-900 hover:bg-white transition open-maps-btn">
             Show on map
-          </button>
-          <button class="text-[11px] px-2 py-1 rounded-lg bg-slate-800 text-slate-100 hover:bg-slate-700 transition open-maps-btn">
-            Open in Maps
           </button>
           <button class="text-[11px] px-2 py-1 rounded-lg bg-slate-800 text-slate-100 hover:bg-slate-700 transition edit-spot-btn">
             Edit
@@ -423,23 +318,17 @@ function renderSpotList() {
         </div>
       `;
 
-      // show on map + auto-close modal
-      div.querySelector(".show-on-map-btn").addEventListener("click", () => {
-        updateMapToLocation(spot.location);
-        if (window.__closeSpotsModal) window.__closeSpotsModal();
-      });
-
-      // open in full Google Maps
+      // Show on map: open Google Maps, close modal
       div.querySelector(".open-maps-btn").addEventListener("click", () => {
         const loc = spot.location.trim();
         const url = loc.startsWith("http")
           ? loc
           : "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(loc);
-
         window.open(url, "_blank", "noopener");
+        if (window.__closeSpotsModal) window.__closeSpotsModal();
       });
 
-      // edit – auto-close modal so the panel is visible to edit
+      // Edit: fills form, closes modal
       div.querySelector(".edit-spot-btn").addEventListener("click", () => {
         editingId = spot.id;
         submitBtn.textContent = "Update spot";
@@ -456,8 +345,6 @@ function renderSpotList() {
         const againHidden = document.getElementById("spot-again");
         const ratingHidden = document.getElementById("spot-rating");
         const ratingSection = document.getElementById("rating-section");
-        const chips = document.querySelectorAll(".yn-chip");
-        const ratingChips = document.querySelectorAll(".rating-chip");
 
         statusHidden.value = spot.status;
         securityHidden.value = spot.security;
@@ -468,35 +355,19 @@ function renderSpotList() {
         if (spot.status === "completed") ratingSection.classList.remove("hidden");
         else ratingSection.classList.add("hidden");
 
-        chips.forEach((c) => {
-          const group = c.dataset.group;
-          if (group === "status") c.classList.toggle("yn-active", c.dataset.value === spot.status);
-          if (group === "security") c.classList.toggle("yn-active", c.dataset.value === spot.security);
-          if (group === "squatters") c.classList.toggle("yn-active", c.dataset.value === spot.squatters);
-          if (group === "again") c.classList.toggle("yn-active", c.dataset.value === (spot.again || "no"));
-        });
-
-        ratingChips.forEach((c) => {
-          c.classList.toggle(
-            "rating-active",
-            parseInt(c.dataset.value, 10) === (spot.rating || 0)
-          );
-        });
-
         if (window.__closeSpotsModal) window.__closeSpotsModal();
+        if (window.__openAddSpotUI) window.__openAddSpotUI();
       });
 
-      // delete with passcode
+      // Delete
       div.querySelector(".delete-spot-btn").addEventListener("click", async () => {
         const pass = prompt("Enter passcode to delete this spot:");
         if (pass !== "1111") {
           if (pass !== null) alert("Incorrect passcode.");
           return;
         }
-
         const ok = await deleteSpotInBackend(spot.id);
         if (!ok) return;
-
         spots = spots.filter((s) => s.id !== spot.id);
         renderSpotList();
       });
@@ -505,7 +376,7 @@ function renderSpotList() {
     });
 }
 
-// ---------- Supabase helpers ----------
+// Supabase
 function rowToSpot(row) {
   return {
     id: row.id,
@@ -524,113 +395,59 @@ function rowToSpot(row) {
 }
 
 async function loadSpotsFromBackend() {
-  const { data, error } = await supabase
-    .from("spots")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("Error loading spots from Supabase:", error);
-    spots = [];
-    return;
-  }
-
+  const { data, error } = await supabase.from("spots").select("*").order("created_at", { ascending: false });
+  if (error) { console.error(error); spots = []; return; }
   spots = data.map(rowToSpot);
 }
 
 async function createSpotInBackend(payload) {
-  const { data, error } = await supabase
-    .from("spots")
-    .insert(payload)
-    .select("*")
-    .single();
-
-  if (error) {
-    console.error("Error creating spot:", error);
-    alert("Could not save spot to backend.");
-    return null;
-  }
+  const { data, error } = await supabase.from("spots").insert(payload).select("*").single();
+  if (error) { console.error(error); alert("Could not save spot."); return null; }
   return data;
 }
 
 async function updateSpotInBackend(id, payload) {
-  const { data, error } = await supabase
-    .from("spots")
-    .update(payload)
-    .eq("id", id)
-    .select("*")
-    .single();
-
-  if (error) {
-    console.error("Error updating spot:", error);
-    alert("Could not update spot.");
-    return null;
-  }
+  const { data, error } = await supabase.from("spots").update(payload).eq("id", id).select("*").single();
+  if (error) { console.error(error); alert("Could not update spot."); return null; }
   return data;
 }
 
 async function deleteSpotInBackend(id) {
   const { error } = await supabase.from("spots").delete().eq("id", id);
-  if (error) {
-    console.error("Error deleting spot:", error);
-    alert("Could not delete spot.");
-    return false;
-  }
+  if (error) { console.error(error); alert("Could not delete spot."); return false; }
   return true;
 }
 
 async function deleteAllSpotsInBackend() {
   const { error } = await supabase.from("spots").delete().gt("id", 0);
-  if (error) {
-    console.error("Error clearing spots:", error);
-    alert("Could not clear spots.");
-  }
+  if (error) { console.error(error); alert("Could not clear spots."); }
 }
 
-// ---------- Misc helpers ----------
 function prettyTier(tier) {
   switch (tier) {
-    case "no_power":
-      return "No power";
-    case "graffiti_no_power":
-      return "Graffiti (no power)";
-    case "graffiti_power":
-      return "Graffiti (power)";
-    case "no_graffiti":
-      return "No graffiti";
-    default:
-      return tier;
+    case "graffiti_no_power": return "Graffiti (no power)";
+    case "graffiti_power": return "Graffiti (power)";
+    case "no_graffiti": return "No graffiti";
+    default: return tier;
   }
 }
-
 function prettyStatus(status) {
   switch (status) {
-    case "pending":
-      return "Pending visit";
-    case "completed":
-      return "Completed visit";
-    default:
-      return status;
+    case "pending": return "Pending visit";
+    case "completed": return "Completed visit";
+    default: return status;
   }
 }
-
 function prettyExplore(type) {
   switch (type) {
-    case "urbex":
-      return "Urbex (abandoned)";
-    case "roofing":
-      return "Roofing";
-    case "drain":
-      return "Drain / Tunnel";
-    case "mixed":
-      return "Mixed / both";
-    case "other":
-      return "Other / not listed";
-    default:
-      return type;
+    case "urbex": return "Urbex";
+    case "roofing": return "Roofing";
+    case "drain": return "Drain / Tunnel";
+    case "mixed": return "Mixed";
+    case "other": return "Other";
+    default: return type;
   }
 }
-
 function escapeHtml(str) {
   if (!str) return "";
   return String(str)
