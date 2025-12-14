@@ -1,28 +1,106 @@
-html,
-body {
-  height: 100%;
-}
+html, body { height: 100%; }
 
-/* Map iframe fills background */
 .urbex-map-iframe {
   width: 100%;
   height: 100%;
   border: 0;
 }
 
-/* Scrollbar for spot list in modal */
-#spots-modal-list::-webkit-scrollbar {
-  width: 6px;
+/* Covers the My Maps top header (name + account + controls) inside the iframe */
+.privacy-bar{
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;       /* desktop-ish */
+  background: rgba(0,0,0,0.88);
+  z-index: 35;
+  pointer-events: none;
 }
-#spots-modal-list::-webkit-scrollbar-track {
-  background: #020617;
-}
-#spots-modal-list::-webkit-scrollbar-thumb {
-  background: #1f293b;
-  border-radius: 999px;
+@media (max-width: 768px){
+  .privacy-bar{ height: 64px; } /* mobile header is taller */
 }
 
-/* Toggle chips (status / security / squatters / again / filters) */
+/* Legend pill */
+.legend-pill{
+  position: absolute;
+  left: 12px;
+  top: 72px;          /* sits under privacy bar */
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 9999px;
+  background: rgba(15,23,42,0.85);
+  border: 1px solid rgba(51,65,85,0.9);
+  box-shadow: 0 10px 20px rgba(0,0,0,.25);
+  font: 12px/1.1 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  color: #e2e8f0;
+}
+.legend-pill .dot{
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+}
+.legend-pill .dot-black{ background:#0b0b0f; outline:1px solid rgba(255,255,255,.18); }
+.legend-pill .dot-red{ background:#ef4444; }
+.legend-pill .sep{ opacity:.6; }
+
+/* Mobile top bar */
+.mobile-topbar{
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.mobile-topbar-title{
+  text-align: center;
+  padding: 12px 14px;
+  border-radius: 9999px;
+  background: rgba(2,6,23,0.65);
+  border: 1px solid rgba(148,163,184,0.35);
+  color: #e5e7eb;
+  font: 700 13px/1 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  letter-spacing: .06em;
+  white-space: nowrap;
+}
+
+.mobile-topbar-btn{
+  height: 44px;
+  border-radius: 9999px;
+  padding: 0 14px;
+  font: 700 13px/1 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  border: 1px solid rgba(51,65,85,0.9);
+  box-shadow: 0 10px 20px rgba(0,0,0,.22);
+  white-space: nowrap;
+}
+
+.mobile-topbar-btn-dark{
+  background: rgba(15,23,42,0.88);
+  color: #e2e8f0;
+}
+.mobile-topbar-btn-dark:active{ transform: scale(0.98); }
+
+.mobile-topbar-btn-amber{
+  background: rgba(250,204,21,0.95);
+  border-color: rgba(250,204,21,1);
+  color: #111827;
+}
+.mobile-topbar-btn-amber:active{ transform: scale(0.98); }
+
+/* Scrollbar for spot list in modal */
+#spots-modal-list::-webkit-scrollbar { width: 6px; }
+#spots-modal-list::-webkit-scrollbar-track { background: #020617; }
+#spots-modal-list::-webkit-scrollbar-thumb { background: #1f293b; border-radius: 999px; }
+
+/* Toggle chips */
 .yn-chip {
   flex: 1;
   display: flex;
@@ -34,8 +112,7 @@ body {
   background-color: #020617;
   color: #e5e7eb;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease,
-    color 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   white-space: nowrap;
 }
 .yn-chip.yn-active {
@@ -56,8 +133,7 @@ body {
   color: #e5e7eb;
   cursor: pointer;
   font-size: 0.7rem;
-  transition: background-color 0.15s ease, border-color 0.15s ease,
-    color 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 .rating-chip.rating-active {
   border-color: #facc15;
