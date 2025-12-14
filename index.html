@@ -24,10 +24,10 @@
 </head>
 
 <body class="bg-slate-950 text-slate-100">
-  <div class="h-screen w-screen relative overflow-hidden">
+  <div id="app-root" class="app-root">
 
     <!-- MAP -->
-    <div class="absolute inset-0">
+    <div class="map-wrap">
       <iframe
         id="map-frame"
         class="urbex-map-iframe"
@@ -36,70 +36,64 @@
         referrerpolicy="no-referrer-when-downgrade"
         src="https://www.google.com/maps/d/u/0/embed?mid=1MOYgFpi4sJJcnl8laOGAkyyL14zJBFA"
       ></iframe>
+
+      <!-- CLICK SHIELD: blocks taps so MyMaps sidebar won't open.
+           Does NOT affect layout, does NOT hide your UI. -->
+      <div id="map-shield" class="map-shield" aria-hidden="true"></div>
+
+      <!-- PRIVACY BAR: covers your name + MyMaps header inside iframe -->
+      <div class="privacy-bar" aria-hidden="true"></div>
     </div>
 
-    <!-- PRIVACY BAR (covers My Maps header + your name inside iframe) -->
-    <div class="privacy-bar"></div>
+    <!-- TOP UI (ALWAYS ON TOP) -->
+    <div class="ui-layer">
 
-    <!-- LEGEND PILL -->
-    <div class="legend-pill">
-      <span class="dot dot-black"></span><span>Urbex</span>
-      <span class="sep">•</span>
-      <span class="dot dot-red"></span><span>Roofing</span>
-    </div>
-
-    <!-- DESKTOP CONTROLS (unchanged behavior, just sits on the privacy bar nicely) -->
-    <header
-      class="hidden md:flex absolute top-3 left-1/2 -translate-x-1/2 z-40 px-4 py-2 rounded-full bg-slate-900/85 border border-slate-700 shadow-lg items-center gap-3 text-xs md:text-sm"
-    >
-      <span class="font-semibold">Urbex Log · Salem</span>
-      <span class="text-slate-400 hidden md:inline">Private urbex map.</span>
-    </header>
-
-    <button
-      id="see-spots"
-      class="hidden md:block absolute top-3 right-3 z-40 px-3 py-1.5 rounded-full bg-slate-900/85 border border-amber-400 text-amber-300 text-xs md:text-sm shadow-lg hover:bg-slate-800 hover:border-amber-300 hover:text-amber-200 transition"
-    >
-      See spots
-    </button>
-
-    <!-- MOBILE TOP BAR (bigger buttons + centered map title) -->
-    <div class="md:hidden mobile-topbar z-40">
-      <button
-        id="add-spot-mobile"
-        class="mobile-topbar-btn mobile-topbar-btn-dark"
-        type="button"
+      <!-- Desktop title pill -->
+      <header
+        class="hidden md:flex ui-title-pill"
       >
-        Add spot
-      </button>
+        <span class="font-semibold">Urbex Log · Salem</span>
+        <span class="text-slate-400 hidden md:inline">Private urbex map.</span>
+      </header>
 
-      <div class="mobile-topbar-title">
-        SALEM URBEX
-      </div>
-
-      <button
-        id="see-spots-mobile"
-        class="mobile-topbar-btn mobile-topbar-btn-amber"
-        type="button"
-      >
+      <!-- Desktop see spots -->
+      <button id="see-spots" class="hidden md:block ui-see-spots">
         See spots
       </button>
+
+      <!-- Mobile top bar -->
+      <div class="md:hidden mobile-topbar">
+        <button id="add-spot-mobile" class="mobile-btn mobile-btn-dark" type="button">
+          Add spot
+        </button>
+
+        <div class="mobile-title">
+          SALEM URBEX
+        </div>
+
+        <button id="see-spots-mobile" class="mobile-btn mobile-btn-amber" type="button">
+          See spots
+        </button>
+      </div>
+
+      <!-- Legend pill (fixed so it can’t get “eaten”) -->
+      <div class="legend-pill">
+        <span class="dot dot-black"></span><span>Urbex</span>
+        <span class="sep">•</span>
+        <span class="dot dot-red"></span><span>Roofing</span>
+      </div>
+
+      <!-- Optional: unlock map button (lets you pan/zoom for 15s) -->
+      <button id="unlock-map" class="unlock-map-btn" type="button">
+        Unlock map
+      </button>
+
     </div>
 
-    <!-- SIDE PANEL (kept for now; mobile button opens it) -->
+    <!-- SIDE PANEL (your existing form UI) -->
     <aside
       id="side-panel"
-      class="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2
-             md:left-auto md:right-6 md:-translate-y-1/2 md:translate-x-0
-             w-[calc(100%-2rem)] max-w-sm z-30
-             rounded-2xl
-             md:border md:border-slate-700 md:bg-slate-900/90 md:shadow-2xl
-             bg-slate-900/95 border border-slate-800
-             max-h-[80vh] overflow-y-auto
-             transition-transform duration-300
-             md:opacity-100 md:pointer-events-auto
-             md:translate-x-0
-             translate-x-[140%] opacity-0 pointer-events-none"
+      class="side-panel"
     >
       <div class="flex flex-col overflow-hidden rounded-2xl">
         <section class="p-4 border-b border-slate-800">
@@ -182,12 +176,8 @@
                 <span class="text-[10px] text-slate-500">optional</span>
               </div>
               <div class="flex gap-1">
-                <button type="button" class="yn-chip" data-group="again" data-value="yes">
-                  Would go again
-                </button>
-                <button type="button" class="yn-chip yn-active" data-group="again" data-value="no">
-                  Wouldn’t go again
-                </button>
+                <button type="button" class="yn-chip" data-group="again" data-value="yes">Would go again</button>
+                <button type="button" class="yn-chip yn-active" data-group="again" data-value="no">Wouldn’t go again</button>
               </div>
             </div>
 
@@ -244,7 +234,7 @@
     </aside>
 
     <!-- Spots browser modal -->
-    <div id="spots-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60">
+    <div id="spots-modal" class="fixed inset-0 z-[100000] hidden items-center justify-center bg-black/60">
       <div class="w-full max-w-lg max-h-[80vh] bg-slate-950 border border-slate-700 rounded-2xl flex flex-col overflow-hidden min-h-0">
         <div class="flex items-center justify-between px-4 py-3 border-b border-slate-800">
           <h2 class="text-sm font-semibold">Spots browser</h2>
