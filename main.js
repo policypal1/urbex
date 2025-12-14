@@ -33,8 +33,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const statusFilterChips = document.querySelectorAll(".status-filter-chip");
   const exploreFilterSelect = document.getElementById("explore-filter");
 
-  // mobile panel state
-  let panelHidden = window.innerWidth < 768;
+  const mapShield = document.getElementById("map-shield");
+  const unlockBtn = document.getElementById("unlock-map");
+
+  let unlockTimer = null;
 
   function closeModal() {
     if (!modal) return;
@@ -49,55 +51,62 @@ document.addEventListener("DOMContentLoaded", () => {
     renderSpotList();
   }
 
-  function setPanelVisibility() {
-    if (!panel) return;
-
-    // desktop: always visible
-    if (window.innerWidth >= 768) {
-      panelHidden = false;
-      panel.classList.remove("translate-x-[140%]", "opacity-0", "pointer-events-none");
-      panel.classList.add("translate-x-[-50%]", "opacity-100", "pointer-events-auto");
-      return;
-    }
-
-    // mobile: hidden by default, opened by Add spot button
-    if (panelHidden) {
-      panel.classList.add("translate-x-[140%]", "opacity-0", "pointer-events-none");
-      panel.classList.remove("translate-x-[-50%]", "opacity-100", "pointer-events-auto");
-    } else {
-      panel.classList.remove("translate-x-[140%]", "opacity-0", "pointer-events-none");
-      panel.classList.add("translate-x-[-50%]", "opacity-100", "pointer-events-auto");
-    }
+  // Map lock/unlock
+  function lockMap() {
+    if (mapShield) mapShield.style.display = "block";
+    if (unlockBtn) unlockBtn.textContent = "Unlock map";
   }
 
-  setPanelVisibility();
+  function unlockMapFor(seconds = 15) {
+    if (mapShield) mapShield.style.display = "none";
+    if (unlockBtn) unlockBtn.textContent = `Map unlocked (${seconds}s)`;
 
-  window.addEventListener("resize", () => {
-    if (window.innerWidth >= 768) panelHidden = false;
-    setPanelVisibility();
-  });
+    if (unlockTimer) clearInterval(unlockTimer);
 
-  // Mobile: Add spot opens your UI (right now it opens the existing panel)
-  if (addSpotMobileBtn) {
-    addSpotMobileBtn.addEventListener("click", () => {
-      // If you want to open YOUR custom UI instead:
-      // 1) create a div modal for it
-      // 2) show it here instead of the panel
-      panelHidden = false;
-      setPanelVisibility();
+    let left = seconds;
+    unlockTimer = setInterval(() => {
+      left -= 1;
+      if (left <= 0) {
+        clearInterval(unlockTimer);
+        unlockTimer = null;
+        lockMap();
+        return;
+      }
+      if (unlockBtn) unlockBtn.textContent = `Map unlocked (${left}s)`;
+    }, 1000);
+  }
 
-      // optional: scroll panel to top
-      if (panel) panel.scrollTop = 0;
+  // Default locked (prevents MyMaps sidebar)
+  lockMap();
+
+  if (unlockBtn) {
+    unlockBtn.addEventListener("click", () => {
+      // toggle
+      if (mapShield && mapShield.style.display !== "none") unlockMapFor(15);
+      else lockMap();
     });
   }
 
-  // See spots (both)
+  // Desktop / mobile see spots
   if (seeSpotsBtnDesktop) seeSpotsBtnDesktop.addEventListener("click", openModal);
   if (seeSpotsBtnMobile) seeSpotsBtnMobile.addEventListener("click", openModal);
 
-  // Close modal
-  if (modalClose) modalClose.addEventListener("click", closeModal);
+  // Mobile add spot: open panel (you can swap to your custom UI later)
+  if (addSpotMobileBtn) {
+    addSpotMobileBtn.addEventListener("click", () => {
+      // Mobile: make panel visible by removing the “hidden” transform classes you used earlier
+      // Since we’re using a single panel class now, just scroll it into view.
+      if (panel) {
+        panel.scrollTop = 0;
+        // quick visual: pulse border
+        panel.style.outline = "2px solid rgba(250,204,21,.35)";
+        setTimeout(() => (panel.style.outline = "none"), 500);
+      }
+    });
+  }
 
+  // Modal close
+  if (modalClose) modalClose.addEventListener("click", closeModal);
   if (modal) {
     modal.addEventListener("click", (e) => {
       if (e.target === modal) closeModal();
@@ -130,7 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Chip logic (status, security, squatters, again)
+  // Chip logic
   chips.forEach((chip) => {
     const group = chip.dataset.group;
     if (!group) return;
@@ -220,7 +229,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     renderSpotList();
 
-    // reset
     form.reset();
     editingId = null;
     submitBtn.textContent = "Save spot";
@@ -248,16 +256,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Expose modal close for list buttons
+  // Expose close for spot list button
   window.__closeSpotsModal = closeModal;
-
-  // Allow you to hook your own UI later:
-  window.__openAddSpotUI = () => {
-    panelHidden = false;
-    setPanelVisibility();
-  };
 });
 
+// ---------- Render list ----------
 function renderSpotList() {
   const list = document.getElementById("spots-modal-list");
   if (!list) return;
@@ -356,7 +359,6 @@ function renderSpotList() {
         else ratingSection.classList.add("hidden");
 
         if (window.__closeSpotsModal) window.__closeSpotsModal();
-        if (window.__openAddSpotUI) window.__openAddSpotUI();
       });
 
       // Delete
@@ -376,7 +378,7 @@ function renderSpotList() {
     });
 }
 
-// Supabase
+// ---------- Supabase helpers ----------
 function rowToSpot(row) {
   return {
     id: row.id,
@@ -423,6 +425,7 @@ async function deleteAllSpotsInBackend() {
   if (error) { console.error(error); alert("Could not clear spots."); }
 }
 
+// ---------- Misc helpers ----------
 function prettyTier(tier) {
   switch (tier) {
     case "graffiti_no_power": return "Graffiti (no power)";
