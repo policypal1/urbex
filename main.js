@@ -27,7 +27,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // panel + modal elements
   const panel = document.getElementById("side-panel");
   const panelToggle = document.getElementById("panel-toggle");
-  const seeSpotsBtn = document.getElementById("see-spots");
+
+  const seeSpotsBtnDesktop = document.getElementById("see-spots");
+  const seeSpotsBtnMobile = document.getElementById("see-spots-mobile");
+
   const modal = document.getElementById("spots-modal");
   const modalClose = document.getElementById("spots-modal-close");
   const modalSearchInput = document.getElementById("modal-search-input");
@@ -37,21 +40,38 @@ document.addEventListener("DOMContentLoaded", () => {
   // closed by default on mobile, open on desktop
   let panelHidden = window.innerWidth < 768;
 
+  function closeModal() {
+    if (!modal) return;
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+  }
+
+  function openModal() {
+    if (!modal) return;
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+    renderSpotList();
+  }
+
   // helper: set panel visibility classes (only matters on mobile)
   function setPanelVisibility() {
     if (!panel) return;
 
     if (window.innerWidth >= 768) {
       panelHidden = false;
-      if (panelToggle) {
-        panelToggle.style.display = "none";
-      }
+
+      if (panelToggle) panelToggle.style.display = "none";
+
       panel.classList.remove(
         "translate-x-[140%]",
         "opacity-0",
         "pointer-events-none"
       );
-      panel.classList.add("translate-x-[-50%]", "opacity-100", "pointer-events-auto");
+      panel.classList.add(
+        "translate-x-[-50%]",
+        "opacity-100",
+        "pointer-events-auto"
+      );
       return;
     }
 
@@ -66,14 +86,22 @@ document.addEventListener("DOMContentLoaded", () => {
         "opacity-0",
         "pointer-events-none"
       );
-      panel.classList.remove("translate-x-[-50%]", "opacity-100", "pointer-events-auto");
+      panel.classList.remove(
+        "translate-x-[-50%]",
+        "opacity-100",
+        "pointer-events-auto"
+      );
     } else {
       panel.classList.remove(
         "translate-x-[140%]",
         "opacity-0",
         "pointer-events-none"
       );
-      panel.classList.add("translate-x-[-50%]", "opacity-100", "pointer-events-auto");
+      panel.classList.add(
+        "translate-x-[-50%]",
+        "opacity-100",
+        "pointer-events-auto"
+      );
     }
   }
 
@@ -90,32 +118,23 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   window.addEventListener("resize", () => {
-    // on resize, recompute mobile/desktop state
-    if (window.innerWidth >= 768) {
-      panelHidden = false;
-    }
+    if (window.innerWidth >= 768) panelHidden = false;
     setPanelVisibility();
   });
 
-  // Open / close browser modal
-  function openModal() {
-    modal.classList.remove("hidden");
-    modal.classList.add("flex");
-    renderSpotList();
-  }
+  // open modal buttons (desktop + mobile)
+  if (seeSpotsBtnDesktop) seeSpotsBtnDesktop.addEventListener("click", openModal);
+  if (seeSpotsBtnMobile) seeSpotsBtnMobile.addEventListener("click", openModal);
 
-  function closeModal() {
-    modal.classList.add("hidden");
-    modal.classList.remove("flex");
-  }
-
-  if (seeSpotsBtn) seeSpotsBtn.addEventListener("click", openModal);
+  // close modal button
   if (modalClose) modalClose.addEventListener("click", closeModal);
 
   // close when clicking outside card
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) closeModal();
-  });
+  if (modal) {
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) closeModal();
+    });
+  }
 
   // Filter: status
   statusFilterChips.forEach((chip) => {
@@ -131,16 +150,20 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Filter: explore type
-  exploreFilterSelect.addEventListener("change", () => {
-    filterExplore = exploreFilterSelect.value;
-    renderSpotList();
-  });
+  if (exploreFilterSelect) {
+    exploreFilterSelect.addEventListener("change", () => {
+      filterExplore = exploreFilterSelect.value;
+      renderSpotList();
+    });
+  }
 
   // Filter: search
-  modalSearchInput.addEventListener("input", () => {
-    filterSearch = modalSearchInput.value.toLowerCase().trim();
-    renderSpotList();
-  });
+  if (modalSearchInput) {
+    modalSearchInput.addEventListener("input", () => {
+      filterSearch = modalSearchInput.value.toLowerCase().trim();
+      renderSpotList();
+    });
+  }
 
   // Chip logic (status, security, squatters, again) for the form
   chips.forEach((chip) => {
@@ -151,20 +174,16 @@ document.addEventListener("DOMContentLoaded", () => {
       const value = chip.dataset.value;
 
       chips.forEach((c) => {
-        if (c.dataset.group === group) {
-          c.classList.remove("yn-active");
-        }
+        if (c.dataset.group === group) c.classList.remove("yn-active");
       });
       chip.classList.add("yn-active");
 
       if (group === "status") {
         statusHidden.value = value;
-        if (value === "completed") {
-          ratingSection.classList.remove("hidden");
-        } else {
-          ratingSection.classList.add("hidden");
-        }
+        if (value === "completed") ratingSection.classList.remove("hidden");
+        else ratingSection.classList.add("hidden");
       }
+
       if (group === "security") securityHidden.value = value;
       if (group === "squatters") squattersHidden.value = value;
       if (group === "again") againHidden.value = value;
@@ -176,9 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
     chip.addEventListener("click", () => {
       const value = chip.dataset.value;
       ratingHidden.value = value;
-      ratingChips.forEach((c) =>
-        c.classList.toggle("rating-active", c === chip)
-      );
+      ratingChips.forEach((c) => c.classList.toggle("rating-active", c === chip));
     });
   });
 
@@ -266,18 +283,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     chips.forEach((c) => {
       const group = c.dataset.group;
-      if (group === "status") {
-        c.classList.toggle("yn-active", c.dataset.value === "pending");
-      }
-      if (group === "security") {
-        c.classList.toggle("yn-active", c.dataset.value === "no");
-      }
-      if (group === "squatters") {
-        c.classList.toggle("yn-active", c.dataset.value === "no");
-      }
-      if (group === "again") {
-        c.classList.toggle("yn-active", c.dataset.value === "no");
-      }
+      if (group === "status") c.classList.toggle("yn-active", c.dataset.value === "pending");
+      if (group === "security") c.classList.toggle("yn-active", c.dataset.value === "no");
+      if (group === "squatters") c.classList.toggle("yn-active", c.dataset.value === "no");
+      if (group === "again") c.classList.toggle("yn-active", c.dataset.value === "no");
     });
   });
 
@@ -295,24 +304,27 @@ document.addEventListener("DOMContentLoaded", () => {
       renderSpotList();
     });
   }
+
+  // expose for inner functions
+  window.__closeSpotsModal = closeModal;
 });
 
 // ---------- Map helper ----------
-
 function updateMapToLocation(location) {
   const frame = document.getElementById("map-frame");
   if (!frame) return;
   const loc = location.trim();
   if (!loc) return;
+
   const url =
     "https://www.google.com/maps?q=" +
     encodeURIComponent(loc) +
     "&output=embed";
+
   frame.src = url;
 }
 
 // ---------- Render list in modal ----------
-
 function renderSpotList() {
   const list = document.getElementById("spots-modal-list");
   if (!list) return;
@@ -362,16 +374,13 @@ function renderSpotList() {
 
       let ratingLine = "";
       if (spot.status === "completed" && spot.rating && spot.rating > 0) {
-        const againText =
-          spot.again === "yes" ? "Would go again" : "Wouldn’t go again";
+        const againText = spot.again === "yes" ? "Would go again" : "Wouldn’t go again";
         ratingLine = `Rating: ${spot.rating}/5 · ${againText}`;
       }
 
       div.innerHTML = `
         <div class="flex items-center justify-between gap-2 mb-1">
-          <span class="font-semibold text-sm truncate">${escapeHtml(
-            spot.name
-          )}</span>
+          <span class="font-semibold text-sm truncate">${escapeHtml(spot.name)}</span>
           <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-200">
             ${escapeHtml(statusLabel)}
           </span>
@@ -388,9 +397,7 @@ function renderSpotList() {
         </p>
         ${
           ratingLine
-            ? `<p class="mt-1 text-[11px] text-amber-200">${escapeHtml(
-                ratingLine
-              )}</p>`
+            ? `<p class="mt-1 text-[11px] text-amber-200">${escapeHtml(ratingLine)}</p>`
             : ""
         }
         ${
@@ -416,22 +423,19 @@ function renderSpotList() {
         </div>
       `;
 
-      // show on map
+      // show on map + auto-close modal
       div.querySelector(".show-on-map-btn").addEventListener("click", () => {
         updateMapToLocation(spot.location);
+        if (window.__closeSpotsModal) window.__closeSpotsModal();
       });
 
       // open in full Google Maps
       div.querySelector(".open-maps-btn").addEventListener("click", () => {
         const loc = spot.location.trim();
-        let url;
-        if (loc.startsWith("http")) {
-          url = loc;
-        } else {
-          url =
-            "https://www.google.com/maps/search/?api=1&query=" +
-            encodeURIComponent(loc);
-        }
+        const url = loc.startsWith("http")
+          ? loc
+          : "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(loc);
+
         window.open(url, "_blank", "noopener");
       });
 
@@ -461,32 +465,15 @@ function renderSpotList() {
         againHidden.value = spot.again || "no";
         ratingHidden.value = spot.rating || 0;
 
-        if (spot.status === "completed") {
-          ratingSection.classList.remove("hidden");
-        } else {
-          ratingSection.classList.add("hidden");
-        }
+        if (spot.status === "completed") ratingSection.classList.remove("hidden");
+        else ratingSection.classList.add("hidden");
 
         chips.forEach((c) => {
           const group = c.dataset.group;
-          if (group === "status") {
-            c.classList.toggle("yn-active", c.dataset.value === spot.status);
-          }
-          if (group === "security") {
-            c.classList.toggle("yn-active", c.dataset.value === spot.security);
-          }
-          if (group === "squatters") {
-            c.classList.toggle(
-              "yn-active",
-              c.dataset.value === spot.squatters
-            );
-          }
-          if (group === "again") {
-            c.classList.toggle(
-              "yn-active",
-              c.dataset.value === (spot.again || "no")
-            );
-          }
+          if (group === "status") c.classList.toggle("yn-active", c.dataset.value === spot.status);
+          if (group === "security") c.classList.toggle("yn-active", c.dataset.value === spot.security);
+          if (group === "squatters") c.classList.toggle("yn-active", c.dataset.value === spot.squatters);
+          if (group === "again") c.classList.toggle("yn-active", c.dataset.value === (spot.again || "no"));
         });
 
         ratingChips.forEach((c) => {
@@ -496,35 +483,29 @@ function renderSpotList() {
           );
         });
 
-        // close the modal screen so the panel is visible for editing
-        const modal = document.getElementById("spots-modal");
-        modal.classList.add("hidden");
-        modal.classList.remove("flex");
+        if (window.__closeSpotsModal) window.__closeSpotsModal();
       });
 
       // delete with passcode
-      div
-        .querySelector(".delete-spot-btn")
-        .addEventListener("click", async () => {
-          const pass = prompt("Enter passcode to delete this spot:");
-          if (pass !== "1111") {
-            if (pass !== null) alert("Incorrect passcode.");
-            return;
-          }
+      div.querySelector(".delete-spot-btn").addEventListener("click", async () => {
+        const pass = prompt("Enter passcode to delete this spot:");
+        if (pass !== "1111") {
+          if (pass !== null) alert("Incorrect passcode.");
+          return;
+        }
 
-          const ok = await deleteSpotInBackend(spot.id);
-          if (!ok) return;
+        const ok = await deleteSpotInBackend(spot.id);
+        if (!ok) return;
 
-          spots = spots.filter((s) => s.id !== spot.id);
-          renderSpotList();
-        });
+        spots = spots.filter((s) => s.id !== spot.id);
+        renderSpotList();
+      });
 
       list.appendChild(div);
     });
 }
 
 // ---------- Supabase helpers ----------
-
 function rowToSpot(row) {
   return {
     id: row.id,
@@ -607,7 +588,6 @@ async function deleteAllSpotsInBackend() {
 }
 
 // ---------- Misc helpers ----------
-
 function prettyTier(tier) {
   switch (tier) {
     case "no_power":
