@@ -6,6 +6,8 @@ let filterStatus = "all";
 let filterExplore = "all";
 let filterSearch = "";
 
+const MYMAP_MID = "1MOYgFpi4sJJcnl8laOGAkyyL14zJBFA";
+
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("spot-form");
   const clearAllBtn = document.getElementById("clear-all");
@@ -22,6 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const ratingChips = document.querySelectorAll(".rating-chip");
 
   const panel = document.getElementById("side-panel");
+  const panelClose = document.getElementById("panel-close");
 
   const seeSpotsBtnDesktop = document.getElementById("see-spots");
   const seeSpotsBtnMobile = document.getElementById("see-spots-mobile");
@@ -33,87 +36,50 @@ document.addEventListener("DOMContentLoaded", () => {
   const statusFilterChips = document.querySelectorAll(".status-filter-chip");
   const exploreFilterSelect = document.getElementById("explore-filter");
 
-  const mapShield = document.getElementById("map-shield");
-  const unlockBtn = document.getElementById("unlock-map");
-
-  let unlockTimer = null;
-
-  function closeModal() {
-    if (!modal) return;
-    modal.classList.add("hidden");
-    modal.classList.remove("flex");
+  // Mobile: start with panel hidden
+  function openPanelMobile() {
+    if (!panel) return;
+    panel.classList.remove("side-panel-hidden");
+  }
+  function closePanelMobile() {
+    if (!panel) return;
+    if (window.innerWidth < 768) panel.classList.add("side-panel-hidden");
   }
 
+  // Ensure hidden on load (mobile only)
+  closePanelMobile();
+
+  // Mobile open/close panel
+  if (addSpotMobileBtn) {
+    addSpotMobileBtn.addEventListener("click", () => {
+      openPanelMobile();
+      if (panel) panel.scrollTop = 0;
+    });
+  }
+  if (panelClose) {
+    panelClose.addEventListener("click", () => closePanelMobile());
+  }
+
+  // Modal open/close
   function openModal() {
-    if (!modal) return;
     modal.classList.remove("hidden");
     modal.classList.add("flex");
     renderSpotList();
   }
-
-  // Map lock/unlock
-  function lockMap() {
-    if (mapShield) mapShield.style.display = "block";
-    if (unlockBtn) unlockBtn.textContent = "Unlock map";
+  function closeModal() {
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
   }
 
-  function unlockMapFor(seconds = 15) {
-    if (mapShield) mapShield.style.display = "none";
-    if (unlockBtn) unlockBtn.textContent = `Map unlocked (${seconds}s)`;
-
-    if (unlockTimer) clearInterval(unlockTimer);
-
-    let left = seconds;
-    unlockTimer = setInterval(() => {
-      left -= 1;
-      if (left <= 0) {
-        clearInterval(unlockTimer);
-        unlockTimer = null;
-        lockMap();
-        return;
-      }
-      if (unlockBtn) unlockBtn.textContent = `Map unlocked (${left}s)`;
-    }, 1000);
-  }
-
-  // Default locked (prevents MyMaps sidebar)
-  lockMap();
-
-  if (unlockBtn) {
-    unlockBtn.addEventListener("click", () => {
-      // toggle
-      if (mapShield && mapShield.style.display !== "none") unlockMapFor(15);
-      else lockMap();
-    });
-  }
-
-  // Desktop / mobile see spots
   if (seeSpotsBtnDesktop) seeSpotsBtnDesktop.addEventListener("click", openModal);
   if (seeSpotsBtnMobile) seeSpotsBtnMobile.addEventListener("click", openModal);
-
-  // Mobile add spot: open panel (you can swap to your custom UI later)
-  if (addSpotMobileBtn) {
-    addSpotMobileBtn.addEventListener("click", () => {
-      // Mobile: make panel visible by removing the “hidden” transform classes you used earlier
-      // Since we’re using a single panel class now, just scroll it into view.
-      if (panel) {
-        panel.scrollTop = 0;
-        // quick visual: pulse border
-        panel.style.outline = "2px solid rgba(250,204,21,.35)";
-        setTimeout(() => (panel.style.outline = "none"), 500);
-      }
-    });
-  }
-
-  // Modal close
   if (modalClose) modalClose.addEventListener("click", closeModal);
-  if (modal) {
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) closeModal();
-    });
-  }
 
-  // Filter: status
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  // Filters
   statusFilterChips.forEach((chip) => {
     chip.addEventListener("click", () => {
       filterStatus = chip.dataset.value;
@@ -123,23 +89,17 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Filter: explore type
-  if (exploreFilterSelect) {
-    exploreFilterSelect.addEventListener("change", () => {
-      filterExplore = exploreFilterSelect.value;
-      renderSpotList();
-    });
-  }
+  exploreFilterSelect.addEventListener("change", () => {
+    filterExplore = exploreFilterSelect.value;
+    renderSpotList();
+  });
 
-  // Filter: search
-  if (modalSearchInput) {
-    modalSearchInput.addEventListener("input", () => {
-      filterSearch = modalSearchInput.value.toLowerCase().trim();
-      renderSpotList();
-    });
-  }
+  modalSearchInput.addEventListener("input", () => {
+    filterSearch = modalSearchInput.value.toLowerCase().trim();
+    renderSpotList();
+  });
 
-  // Chip logic
+  // Chips (form)
   chips.forEach((chip) => {
     const group = chip.dataset.group;
     if (!group) return;
@@ -163,7 +123,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Rating chips
   ratingChips.forEach((chip) => {
     chip.addEventListener("click", () => {
       ratingHidden.value = chip.dataset.value;
@@ -171,12 +130,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // Load spots
   (async () => {
     await loadSpotsFromBackend();
     renderSpotList();
   })();
 
-  // Form submit
+  // Submit
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -229,6 +189,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     renderSpotList();
 
+    // after save: show on embedded map + close panel on mobile
+    showOnEmbeddedMap(location);
+    closePanelMobile();
+
     form.reset();
     editingId = null;
     submitBtn.textContent = "Save spot";
@@ -255,12 +219,24 @@ document.addEventListener("DOMContentLoaded", () => {
       renderSpotList();
     });
   }
-
-  // Expose close for spot list button
-  window.__closeSpotsModal = closeModal;
 });
 
-// ---------- Render list ----------
+// --- Embedded map helper ---
+// Best possible inside My Maps embed: set the iframe to a search view.
+// This won’t “select a pin” like the My Maps sidebar, but it will center/search.
+function showOnEmbeddedMap(location) {
+  const frame = document.getElementById("map-frame");
+  if (!frame) return;
+
+  const q = encodeURIComponent(location.trim());
+  if (!q) return;
+
+  // Using Google Maps search embed gives reliable centering/search.
+  // Keeps your My Map visible as default; this is just for "show".
+  frame.src = `https://www.google.com/maps?q=${q}&output=embed`;
+}
+
+// --- Render modal list ---
 function renderSpotList() {
   const list = document.getElementById("spots-modal-list");
   if (!list) return;
@@ -309,8 +285,11 @@ function renderSpotList() {
         <p class="text-[11px] text-slate-300 mb-1">${escapeHtml(exploreLabel)} · ${escapeHtml(tierLabel)}</p>
 
         <div class="flex flex-wrap gap-2 mt-2">
-          <button class="text-[11px] px-2 py-1 rounded-lg bg-slate-100 text-slate-900 hover:bg-white transition open-maps-btn">
+          <button class="text-[11px] px-2 py-1 rounded-lg bg-slate-100 text-slate-900 hover:bg-white transition show-on-map-btn">
             Show on map
+          </button>
+          <button class="text-[11px] px-2 py-1 rounded-lg bg-slate-800 text-slate-100 hover:bg-slate-700 transition open-maps-btn">
+            Open in Maps
           </button>
           <button class="text-[11px] px-2 py-1 rounded-lg bg-slate-800 text-slate-100 hover:bg-slate-700 transition edit-spot-btn">
             Edit
@@ -321,17 +300,23 @@ function renderSpotList() {
         </div>
       `;
 
-      // Show on map: open Google Maps, close modal
+      // Show on embedded map + close modal
+      div.querySelector(".show-on-map-btn").addEventListener("click", () => {
+        showOnEmbeddedMap(spot.location);
+        closeSpotsModal();
+      });
+
+      // Open in full Google Maps + close modal
       div.querySelector(".open-maps-btn").addEventListener("click", () => {
         const loc = spot.location.trim();
         const url = loc.startsWith("http")
           ? loc
           : "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(loc);
         window.open(url, "_blank", "noopener");
-        if (window.__closeSpotsModal) window.__closeSpotsModal();
+        closeSpotsModal();
       });
 
-      // Edit: fills form, closes modal
+      // Edit
       div.querySelector(".edit-spot-btn").addEventListener("click", () => {
         editingId = spot.id;
         submitBtn.textContent = "Update spot";
@@ -348,6 +333,8 @@ function renderSpotList() {
         const againHidden = document.getElementById("spot-again");
         const ratingHidden = document.getElementById("spot-rating");
         const ratingSection = document.getElementById("rating-section");
+        const chips = document.querySelectorAll(".yn-chip");
+        const ratingChips = document.querySelectorAll(".rating-chip");
 
         statusHidden.value = spot.status;
         securityHidden.value = spot.security;
@@ -358,7 +345,23 @@ function renderSpotList() {
         if (spot.status === "completed") ratingSection.classList.remove("hidden");
         else ratingSection.classList.add("hidden");
 
-        if (window.__closeSpotsModal) window.__closeSpotsModal();
+        chips.forEach((c) => {
+          const group = c.dataset.group;
+          if (group === "status") c.classList.toggle("yn-active", c.dataset.value === spot.status);
+          if (group === "security") c.classList.toggle("yn-active", c.dataset.value === spot.security);
+          if (group === "squatters") c.classList.toggle("yn-active", c.dataset.value === spot.squatters);
+          if (group === "again") c.classList.toggle("yn-active", c.dataset.value === (spot.again || "no"));
+        });
+
+        ratingChips.forEach((c) => {
+          c.classList.toggle("rating-active", parseInt(c.dataset.value, 10) === (spot.rating || 0));
+        });
+
+        closeSpotsModal();
+
+        // open panel on mobile so edit feels smooth
+        const panel = document.getElementById("side-panel");
+        if (panel && window.innerWidth < 768) panel.classList.remove("side-panel-hidden");
       });
 
       // Delete
@@ -378,7 +381,14 @@ function renderSpotList() {
     });
 }
 
-// ---------- Supabase helpers ----------
+function closeSpotsModal() {
+  const modal = document.getElementById("spots-modal");
+  if (!modal) return;
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+}
+
+// --- Supabase helpers ---
 function rowToSpot(row) {
   return {
     id: row.id,
@@ -397,35 +407,69 @@ function rowToSpot(row) {
 }
 
 async function loadSpotsFromBackend() {
-  const { data, error } = await supabase.from("spots").select("*").order("created_at", { ascending: false });
-  if (error) { console.error(error); spots = []; return; }
+  const { data, error } = await supabase
+    .from("spots")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    spots = [];
+    return;
+  }
   spots = data.map(rowToSpot);
 }
 
 async function createSpotInBackend(payload) {
-  const { data, error } = await supabase.from("spots").insert(payload).select("*").single();
-  if (error) { console.error(error); alert("Could not save spot."); return null; }
+  const { data, error } = await supabase
+    .from("spots")
+    .insert(payload)
+    .select("*")
+    .single();
+
+  if (error) {
+    console.error(error);
+    alert("Could not save spot.");
+    return null;
+  }
   return data;
 }
 
 async function updateSpotInBackend(id, payload) {
-  const { data, error } = await supabase.from("spots").update(payload).eq("id", id).select("*").single();
-  if (error) { console.error(error); alert("Could not update spot."); return null; }
+  const { data, error } = await supabase
+    .from("spots")
+    .update(payload)
+    .eq("id", id)
+    .select("*")
+    .single();
+
+  if (error) {
+    console.error(error);
+    alert("Could not update spot.");
+    return null;
+  }
   return data;
 }
 
 async function deleteSpotInBackend(id) {
   const { error } = await supabase.from("spots").delete().eq("id", id);
-  if (error) { console.error(error); alert("Could not delete spot."); return false; }
+  if (error) {
+    console.error(error);
+    alert("Could not delete spot.");
+    return false;
+  }
   return true;
 }
 
 async function deleteAllSpotsInBackend() {
   const { error } = await supabase.from("spots").delete().gt("id", 0);
-  if (error) { console.error(error); alert("Could not clear spots."); }
+  if (error) {
+    console.error(error);
+    alert("Could not clear spots.");
+  }
 }
 
-// ---------- Misc helpers ----------
+// --- Misc helpers ---
 function prettyTier(tier) {
   switch (tier) {
     case "graffiti_no_power": return "Graffiti (no power)";
