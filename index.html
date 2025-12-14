@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Urbex Log · Salem</title>
+  <title>NightLoom Atlas · Salem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <script src="https://cdn.tailwindcss.com"></script>
@@ -37,28 +37,33 @@
         src="https://www.google.com/maps/d/u/0/embed?mid=1MOYgFpi4sJJcnl8laOGAkyyL14zJBFA"
       ></iframe>
 
-      <!-- CLICK SHIELD: blocks taps so MyMaps sidebar won't open.
-           Does NOT affect layout, does NOT hide your UI. -->
-      <div id="map-shield" class="map-shield" aria-hidden="true"></div>
-
-      <!-- PRIVACY BAR: covers your name + MyMaps header inside iframe -->
+      <!-- Privacy bar to cover your name + My Maps header -->
       <div class="privacy-bar" aria-hidden="true"></div>
     </div>
 
-    <!-- TOP UI (ALWAYS ON TOP) -->
+    <!-- UI LAYER -->
     <div class="ui-layer">
 
-      <!-- Desktop title pill -->
-      <header
-        class="hidden md:flex ui-title-pill"
-      >
-        <span class="font-semibold">Urbex Log · Salem</span>
-        <span class="text-slate-400 hidden md:inline">Private urbex map.</span>
+      <!-- Desktop header (more pro) -->
+      <header class="hidden md:flex desktop-header">
+        <div class="flex items-center gap-3">
+          <div class="brand-mark" aria-hidden="true"></div>
+          <div class="leading-tight">
+            <div class="brand-title">NightLoom Atlas</div>
+            <div class="brand-sub">Private spot tracker · Salem area</div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="badge">Urbex ⚫</span>
+          <span class="badge">Roofing 🔴</span>
+          <span class="badge badge-muted">Invite-only</span>
+        </div>
       </header>
 
-      <!-- Desktop see spots -->
-      <button id="see-spots" class="hidden md:block ui-see-spots">
-        See spots
+      <!-- Desktop button -->
+      <button id="see-spots" class="hidden md:block desktop-action-btn">
+        Spot list
       </button>
 
       <!-- Mobile top bar -->
@@ -67,39 +72,37 @@
           Add spot
         </button>
 
-        <div class="mobile-title">
-          SALEM URBEX
-        </div>
+        <div class="mobile-title">SALEM URBEX</div>
 
         <button id="see-spots-mobile" class="mobile-btn mobile-btn-amber" type="button">
-          See spots
+          Spot list
         </button>
       </div>
 
-      <!-- Legend pill (fixed so it can’t get “eaten”) -->
+      <!-- Legend pill -->
       <div class="legend-pill">
         <span class="dot dot-black"></span><span>Urbex</span>
         <span class="sep">•</span>
         <span class="dot dot-red"></span><span>Roofing</span>
       </div>
 
-      <!-- Optional: unlock map button (lets you pan/zoom for 15s) -->
-      <button id="unlock-map" class="unlock-map-btn" type="button">
-        Unlock map
-      </button>
-
     </div>
 
-    <!-- SIDE PANEL (your existing form UI) -->
-    <aside
-      id="side-panel"
-      class="side-panel"
-    >
+    <!-- SIDE PANEL -->
+    <aside id="side-panel" class="side-panel side-panel-hidden">
+      <!-- Mobile panel header with X -->
+      <div class="md:hidden panel-mobile-header">
+        <div class="panel-mobile-title">Add a spot</div>
+        <button id="panel-close" class="panel-close-btn" type="button" aria-label="Close">
+          ✕
+        </button>
+      </div>
+
       <div class="flex flex-col overflow-hidden rounded-2xl">
         <section class="p-4 border-b border-slate-800">
-          <h2 class="text-base md:text-lg font-semibold mb-1">Add a spot</h2>
+          <h2 class="hidden md:block text-base md:text-lg font-semibold mb-1">Add a spot</h2>
           <p class="text-[11px] text-slate-400 mb-3">
-            Find it on the map, copy the address/coords or a Maps link, then save your notes.
+            Copy an address/coords or a Google Maps share link, then save your notes.
           </p>
 
           <form id="spot-form" class="flex flex-col gap-2">
@@ -146,7 +149,7 @@
                 type="text"
                 id="spot-location"
                 class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
-                placeholder="Address, coords, or Google Maps share link"
+                placeholder="Address, coords, plus code, or Maps link"
                 required
               />
             </div>
@@ -237,7 +240,7 @@
     <div id="spots-modal" class="fixed inset-0 z-[100000] hidden items-center justify-center bg-black/60">
       <div class="w-full max-w-lg max-h-[80vh] bg-slate-950 border border-slate-700 rounded-2xl flex flex-col overflow-hidden min-h-0">
         <div class="flex items-center justify-between px-4 py-3 border-b border-slate-800">
-          <h2 class="text-sm font-semibold">Spots browser</h2>
+          <h2 class="text-sm font-semibold">Spot list</h2>
           <button id="spots-modal-close" class="text-xs px-2 py-1 rounded-lg bg-slate-800 text-slate-100 hover:bg-slate-700">
             Close
           </button>
