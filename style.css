@@ -6,20 +6,25 @@ html, body { height: 100%; }
   border: 0;
 }
 
-/* Covers the My Maps top header (name + account + controls) inside the iframe */
+/* Covers the My Maps header inside the iframe (fully opaque + taller) */
 .privacy-bar{
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 56px;       /* desktop-ish */
-  background: rgba(0,0,0,0.88);
-  z-index: 35;
-  pointer-events: none;
+
+  height: 72px;          /* desktop */
+  background: #000;      /* fully opaque */
+  z-index: 9999;
+  pointer-events: none;  /* don't block your own buttons */
 }
+
 @media (max-width: 768px){
-  .privacy-bar{ height: 64px; } /* mobile header is taller */
+  .privacy-bar{
+    height: 92px;        /* mobile header is taller */
+  }
 }
+
 
 /* Legend pill */
 .legend-pill{
