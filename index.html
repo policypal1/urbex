@@ -27,6 +27,7 @@
   <!-- App logic -->
   <script defer src="main.js"></script>
 </head>
+
 <body class="bg-slate-950 text-slate-100">
   <!-- Full-screen map -->
   <div class="h-screen w-screen relative overflow-hidden">
@@ -41,30 +42,50 @@
       ></iframe>
     </div>
 
-    <!-- Top banner -->
-    <header class="absolute top-3 left-1/2 -translate-x-1/2 z-10 px-4 py-2 rounded-full bg-slate-900/85 border border-slate-700 shadow-lg flex items-center gap-3 text-xs md:text-sm">
+    <!-- Desktop: unchanged look -->
+    <header
+      class="hidden md:flex absolute top-3 left-1/2 -translate-x-1/2 z-10 px-4 py-2 rounded-full bg-slate-900/85 border border-slate-700 shadow-lg items-center gap-3 text-xs md:text-sm"
+    >
       <span class="font-semibold">Urbex Log · Salem</span>
       <span class="text-slate-400 hidden md:inline">
         Private urbex map.
       </span>
     </header>
 
-    <!-- See spots (opens browser modal) -->
     <button
       id="see-spots"
-      class="absolute top-3 right-3 z-10 px-3 py-1.5 rounded-full bg-slate-900/85 border border-amber-400 text-amber-300 text-xs md:text-sm shadow-lg hover:bg-slate-800 hover:border-amber-300 hover:text-amber-200 transition"
+      class="hidden md:block absolute top-3 right-3 z-10 px-3 py-1.5 rounded-full bg-slate-900/85 border border-amber-400 text-amber-300 text-xs md:text-sm shadow-lg hover:bg-slate-800 hover:border-amber-300 hover:text-amber-200 transition"
     >
       See spots
     </button>
 
-    <!-- Mobile toggle button (arrow only) -->
-    <button
-      id="panel-toggle"
-      class="md:hidden absolute top-24 right-4 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-slate-900/90 border border-slate-700 text-slate-100 shadow-lg transition-all duration-300"
-      aria-label="Toggle details"
+    <!-- Mobile: connected bar (title + see spots + toggle) -->
+    <div
+      class="md:hidden absolute top-3 left-1/2 -translate-x-1/2 z-20 flex items-center overflow-hidden rounded-full border border-slate-700 bg-slate-900/90 shadow-lg"
     >
-      ⮞
-    </button>
+      <div class="px-3 py-2 text-xs font-semibold whitespace-nowrap">
+        Urbex Log · Salem
+      </div>
+
+      <div class="h-8 w-px bg-slate-700/80"></div>
+
+      <button
+        id="see-spots-mobile"
+        class="px-3 py-2 text-xs text-amber-300 hover:text-amber-200 hover:bg-slate-800/70 transition whitespace-nowrap"
+      >
+        See spots
+      </button>
+
+      <div class="h-8 w-px bg-slate-700/80"></div>
+
+      <button
+        id="panel-toggle"
+        class="w-10 h-9 flex items-center justify-center text-slate-100 hover:bg-slate-800/70 transition"
+        aria-label="Toggle details"
+      >
+        ⮞
+      </button>
+    </div>
 
     <!-- Centered on mobile, docked right on desktop -->
     <aside
@@ -227,7 +248,7 @@
               Save spot
             </button>
 
-            <!-- Clear all button (small, under form) -->
+            <!-- Clear all button -->
             <button
               type="button"
               id="clear-all"
@@ -241,14 +262,12 @@
     </aside>
   </div>
 
-    <!-- Spots browser modal -->
+  <!-- Spots browser modal -->
   <div
     id="spots-modal"
     class="fixed inset-0 z-30 hidden items-center justify-center bg-black/60"
   >
-    <div
-      class="w-full max-w-lg max-h-[80vh] bg-slate-950 border border-slate-700 rounded-2xl flex flex-col overflow-hidden min-h-0"
-    >
+    <div class="w-full max-w-lg max-h-[80vh] bg-slate-950 border border-slate-700 rounded-2xl flex flex-col overflow-hidden min-h-0">
       <div class="flex items-center justify-between px-4 py-3 border-b border-slate-800">
         <h2 class="text-sm font-semibold">Spots browser</h2>
         <button
