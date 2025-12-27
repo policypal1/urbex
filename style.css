@@ -179,4 +179,12 @@ html, body {
 
 .legend-pill .sep{
   opacity:.6;
+}@media (max-width: 767px){
+  .legend-pill{
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    top: 78px; /* tweak if you want it higher/lower */
+  }
 }
+
