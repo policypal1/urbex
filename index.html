@@ -44,7 +44,7 @@
     <!-- UI LAYER -->
     <div class="ui-layer">
 
-      <!-- Desktop header (more pro) -->
+      <!-- Desktop header -->
       <header class="hidden md:flex desktop-header">
         <div class="flex items-center gap-3">
           <div class="brand-mark" aria-hidden="true"></div>
@@ -60,222 +60,165 @@
         </div>
       </header>
 
-      <!-- Desktop button -->
-      <button id="see-spots" class="hidden md:block desktop-action-btn">
-        Spot list
+      <!-- Desktop Add Spot button -->
+      <button id="add-spot-desktop" class="hidden md:block desktop-action-btn" type="button">
+        Add spot
       </button>
 
       <!-- Mobile top bar -->
       <div class="md:hidden mobile-topbar">
-        <button id="add-spot-mobile" class="mobile-btn mobile-btn-dark" type="button">
+        <button id="add-spot-mobile" class="mobile-btn mobile-btn-amber" type="button">
           Add spot
         </button>
 
         <div class="mobile-title">SALEM URBEX</div>
 
-        <button id="see-spots-mobile" class="mobile-btn mobile-btn-amber" type="button">
-          Spot list
-        </button>
+        <!-- spacer so title stays centered -->
+        <div aria-hidden="true"></div>
       </div>
 
-  
-
-    <!-- SIDE PANEL -->
-    <aside id="side-panel" class="side-panel side-panel-hidden">
-      <!-- Mobile panel header with X -->
-      <div class="md:hidden panel-mobile-header">
-        <div class="panel-mobile-title">Add a spot</div>
-        <button id="panel-close" class="panel-close-btn" type="button" aria-label="Close">
-          ✕
-        </button>
-      </div>
-
-      <div class="flex flex-col overflow-hidden rounded-2xl">
-        <section class="p-4 border-b border-slate-800">
-          <h2 class="hidden md:block text-base md:text-lg font-semibold mb-1">Add a spot</h2>
-          <p class="text-[11px] text-slate-400 mb-3">
-            Copy an address/coords or a Google Maps share link, then save your notes.
-          </p>
-
-          <form id="spot-form" class="flex flex-col gap-2">
-            <div>
-              <p class="block text-xs text-slate-300 mb-1">Visit status</p>
-              <div class="flex gap-1 text-[11px]">
-                <button type="button" class="yn-chip yn-active" data-group="status" data-value="pending">
-                  Pending visit
-                </button>
-                <button type="button" class="yn-chip" data-group="status" data-value="completed">
-                  Completed visit
-                </button>
-              </div>
-              <input type="hidden" id="spot-status-hidden" value="pending" />
-            </div>
-
-            <div>
-              <label class="block text-xs text-slate-300 mb-1">Type of explore</label>
-              <select
-                id="spot-explore"
-                class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
-              >
-                <option value="urbex">Urbex (abandoned building)</option>
-                <option value="roofing">Roofing</option>
-                <option value="drain">Tunnel</option>
-                <option value="other">Not listed</option>
-              </select>
-            </div>
-
-            <div>
-              <label class="block text-xs text-slate-300 mb-1">Name</label>
-              <input
-                type="text"
-                id="spot-name"
-                class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
-                placeholder="Old warehouse by the tracks"
-                required
-              />
-            </div>
-
-            <div>
-              <label class="block text-xs text-slate-300 mb-1">Location / link</label>
-              <input
-                type="text"
-                id="spot-location"
-                class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
-                placeholder="Address, coords, plus code, or Maps link"
-                required
-              />
-            </div>
-
-            <div>
-              <label class="block text-xs text-slate-300 mb-1">Status of place</label>
-              <select
-                id="spot-tier"
-                class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
-              >
-                <option value="graffiti_no_power">Graffiti (no power)</option>
-                <option value="graffiti_power">Graffiti (power)</option>
-                <option value="no_graffiti">No graffiti (power)☠️</option>
-              </select>
-            </div>
-
-            <div id="rating-section" class="text-[11px] mt-1 hidden">
-              <p class="text-slate-300 mb-1">Rating (1–5) & would go again</p>
-              <div class="flex items-center gap-2 mb-1">
-                <div class="flex gap-1 flex-1">
-                  <button type="button" class="rating-chip" data-value="1">1</button>
-                  <button type="button" class="rating-chip" data-value="2">2</button>
-                  <button type="button" class="rating-chip" data-value="3">3</button>
-                  <button type="button" class="rating-chip" data-value="4">4</button>
-                  <button type="button" class="rating-chip" data-value="5">5</button>
-                </div>
-                <span class="text-[10px] text-slate-500">optional</span>
-              </div>
-              <div class="flex gap-1">
-                <button type="button" class="yn-chip" data-group="again" data-value="yes">Would go again</button>
-                <button type="button" class="yn-chip yn-active" data-group="again" data-value="no">Wouldn’t go again</button>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2 text-[11px]">
-              <div>
-                <p class="mb-1 text-slate-300">Security / cameras</p>
-                <div class="flex gap-1">
-                  <button type="button" class="yn-chip" data-group="security" data-value="yes">Yes</button>
-                  <button type="button" class="yn-chip yn-active" data-group="security" data-value="no">No / unknown</button>
-                </div>
-              </div>
-              <div>
-                <p class="mb-1 text-slate-300">Squatters</p>
-                <div class="flex gap-1">
-                  <button type="button" class="yn-chip" data-group="squatters" data-value="yes">Yes / likely</button>
-                  <button type="button" class="yn-chip yn-active" data-group="squatters" data-value="no">No / unlikely</button>
-                </div>
-              </div>
-            </div>
-
-            <input type="hidden" id="spot-security" value="no" />
-            <input type="hidden" id="spot-squatters" value="no" />
-            <input type="hidden" id="spot-again" value="no" />
-            <input type="hidden" id="spot-rating" value="0" />
-
-            <div>
-              <label class="block text-xs text-slate-300 mb-1">Notes (optional)</label>
-              <textarea
-                id="spot-notes"
-                rows="2"
-                class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
-                placeholder="Access, vibe, hazards, best time to go..."
-              ></textarea>
-            </div>
-
-            <button
-              type="submit"
-              id="submit-btn"
-              class="mt-2 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-xl bg-slate-100 text-slate-900 hover:bg-white transition"
-            >
-              Save spot
-            </button>
-
-            <button
-              type="button"
-              id="clear-all"
-              class="mt-2 text-[11px] px-2 py-1 rounded-lg border border-slate-700 text-slate-300 hover:border-red-500 hover:text-red-200 transition self-start"
-            >
-              Clear all spots
-            </button>
-          </form>
-        </section>
-      </div>
-    </aside>
-
-    <!-- Spots browser modal -->
-    <div id="spots-modal" class="fixed inset-0 z-[100000] hidden items-center justify-center bg-black/60">
-      <div class="w-full max-w-lg max-h-[80vh] bg-slate-950 border border-slate-700 rounded-2xl flex flex-col overflow-hidden min-h-0">
-        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-800">
-          <h2 class="text-sm font-semibold">Spot list</h2>
-          <button id="spots-modal-close" class="text-xs px-2 py-1 rounded-lg bg-slate-800 text-slate-100 hover:bg-slate-700">
-            Close
+      <!-- SIDE PANEL -->
+      <aside id="side-panel" class="side-panel side-panel-hidden">
+        <!-- Mobile panel header with X -->
+        <div class="md:hidden panel-mobile-header">
+          <div class="panel-mobile-title">Add a spot</div>
+          <button id="panel-close" class="panel-close-btn" type="button" aria-label="Close">
+            ✕
           </button>
         </div>
 
-        <div class="px-4 pt-3 pb-2 space-y-2 text-[11px]">
-          <div class="flex gap-2">
-            <div class="flex-1 min-w-0">
-              <p class="mb-1 text-slate-300">Status</p>
-              <div class="flex gap-1">
-                <button type="button" class="yn-chip status-filter-chip yn-active" data-value="all">All</button>
-                <button type="button" class="yn-chip status-filter-chip" data-value="pending">Pending</button>
-                <button type="button" class="yn-chip status-filter-chip" data-value="completed">Completed</button>
+        <div class="flex flex-col overflow-hidden rounded-2xl">
+          <section class="p-4 border-b border-slate-800">
+            <h2 class="hidden md:block text-base md:text-lg font-semibold mb-1">Add a spot</h2>
+            <p class="text-[11px] text-slate-400 mb-3">
+              Copy an address/coords or a Google Maps share link, then save your notes.
+            </p>
+
+            <form id="spot-form" class="flex flex-col gap-2">
+              <div>
+                <p class="block text-xs text-slate-300 mb-1">Visit status</p>
+                <div class="flex gap-1 text-[11px]">
+                  <button type="button" class="yn-chip yn-active" data-group="status" data-value="pending">
+                    Pending visit
+                  </button>
+                  <button type="button" class="yn-chip" data-group="status" data-value="completed">
+                    Completed visit
+                  </button>
+                </div>
+                <input type="hidden" id="spot-status-hidden" value="pending" />
               </div>
-            </div>
 
-            <div class="flex-1 min-w-0">
-              <p class="mb-1 text-slate-300">Type</p>
-              <select id="explore-filter" class="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-[11px] outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100">
-                <option value="all">All types</option>
-                <option value="urbex">Urbex</option>
-                <option value="roofing">Roofing</option>
-                <option value="drain">Drain / Tunnel</option>
-                <option value="mixed">Mixed / both</option>
-                <option value="other">Other / not listed</option>
-              </select>
-            </div>
-          </div>
+              <div>
+                <label class="block text-xs text-slate-300 mb-1">Type of explore</label>
+                <select
+                  id="spot-explore"
+                  class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
+                >
+                  <option value="urbex">Urbex (abandoned building)</option>
+                  <option value="roofing">Roofing</option>
+                  <option value="drain">Tunnel</option>
+                  <option value="other">Not listed</option>
+                </select>
+              </div>
 
-          <div>
-            <input
-              type="text"
-              id="modal-search-input"
-              class="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
-              placeholder="Search by name, notes, location..."
-            />
-          </div>
+              <div>
+                <label class="block text-xs text-slate-300 mb-1">Name</label>
+                <input
+                  type="text"
+                  id="spot-name"
+                  class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
+                  placeholder="Old warehouse by the tracks"
+                  required
+                />
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 mb-1">Location / link</label>
+                <input
+                  type="text"
+                  id="spot-location"
+                  class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
+                  placeholder="Address, coords, plus code, or Maps link"
+                  required
+                />
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 mb-1">Status of place</label>
+                <select
+                  id="spot-tier"
+                  class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
+                >
+                  <option value="graffiti_no_power">Graffiti (no power)</option>
+                  <option value="graffiti_power">Graffiti (power)</option>
+                  <option value="no_graffiti">No graffiti (power)☠️</option>
+                </select>
+              </div>
+
+              <div id="rating-section" class="text-[11px] mt-1 hidden">
+                <p class="text-slate-300 mb-1">Rating (1–5) & would go again</p>
+                <div class="flex items-center gap-2 mb-1">
+                  <div class="flex gap-1 flex-1">
+                    <button type="button" class="rating-chip" data-value="1">1</button>
+                    <button type="button" class="rating-chip" data-value="2">2</button>
+                    <button type="button" class="rating-chip" data-value="3">3</button>
+                    <button type="button" class="rating-chip" data-value="4">4</button>
+                    <button type="button" class="rating-chip" data-value="5">5</button>
+                  </div>
+                  <span class="text-[10px] text-slate-500">optional</span>
+                </div>
+                <div class="flex gap-1">
+                  <button type="button" class="yn-chip" data-group="again" data-value="yes">Would go again</button>
+                  <button type="button" class="yn-chip yn-active" data-group="again" data-value="no">Wouldn’t go again</button>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2 text-[11px]">
+                <div>
+                  <p class="mb-1 text-slate-300">Security / cameras</p>
+                  <div class="flex gap-1">
+                    <button type="button" class="yn-chip" data-group="security" data-value="yes">Yes</button>
+                    <button type="button" class="yn-chip yn-active" data-group="security" data-value="no">No / unknown</button>
+                  </div>
+                </div>
+                <div>
+                  <p class="mb-1 text-slate-300">Squatters</p>
+                  <div class="flex gap-1">
+                    <button type="button" class="yn-chip" data-group="squatters" data-value="yes">Yes / likely</button>
+                    <button type="button" class="yn-chip yn-active" data-group="squatters" data-value="no">No / unlikely</button>
+                  </div>
+                </div>
+              </div>
+
+              <input type="hidden" id="spot-security" value="no" />
+              <input type="hidden" id="spot-squatters" value="no" />
+              <input type="hidden" id="spot-again" value="no" />
+              <input type="hidden" id="spot-rating" value="0" />
+
+              <div>
+                <label class="block text-xs text-slate-300 mb-1">Notes (optional)</label>
+                <textarea
+                  id="spot-notes"
+                  rows="2"
+                  class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-100"
+                  placeholder="Access, vibe, hazards, best time to go..."
+                ></textarea>
+              </div>
+
+              <button
+                type="submit"
+                id="submit-btn"
+                class="mt-2 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-xl bg-slate-100 text-slate-900 hover:bg-white transition"
+              >
+                Save spot
+              </button>
+
+            </form>
+          </section>
         </div>
+      </aside>
 
-        <div id="spots-modal-list" class="flex-1 min-h-0 px-4 pb-4 space-y-2 overflow-y-auto overscroll-contain text-sm"></div>
-      </div>
     </div>
-
   </div>
 </body>
 </html>
