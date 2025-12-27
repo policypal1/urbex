@@ -65,7 +65,7 @@
         Add spot
       </button>
 
-      <!-- Mobile top bar -->
+      <!-- Mobile top bar (cleaner now) -->
       <div class="md:hidden mobile-topbar">
         <button id="add-spot-mobile" class="mobile-btn mobile-btn-amber" type="button">
           Add spot
@@ -73,8 +73,8 @@
 
         <div class="mobile-title">SALEM URBEX</div>
 
-        <!-- spacer so title stays centered -->
-        <div aria-hidden="true"></div>
+        <!-- right spacer same width as button, so title stays centered -->
+        <div class="mobile-spacer" aria-hidden="true"></div>
       </div>
 
       <!-- SIDE PANEL -->
@@ -87,11 +87,12 @@
           </button>
         </div>
 
-        <div class="flex flex-col overflow-hidden rounded-2xl">
+        <div class="panel-inner">
+          <!-- FORM -->
           <section class="p-4 border-b border-slate-800">
             <h2 class="hidden md:block text-base md:text-lg font-semibold mb-1">Add a spot</h2>
             <p class="text-[11px] text-slate-400 mb-3">
-              Copy an address/coords or a Google Maps share link, then save your notes.
+              Paste an address/coords or a Google Maps share link, then save your notes.
             </p>
 
             <form id="spot-form" class="flex flex-col gap-2">
@@ -213,7 +214,20 @@
                 Save spot
               </button>
 
+              <p id="save-status" class="text-[11px] text-slate-400 mt-1 hidden"></p>
             </form>
+          </section>
+
+          <!-- LIST -->
+          <section class="p-4">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-sm font-semibold">Added spots</h3>
+              <button id="refresh-spots" type="button" class="text-[11px] px-2 py-1 rounded-lg border border-slate-700 text-slate-200 hover:bg-slate-900">
+                Refresh
+              </button>
+            </div>
+
+            <div id="spots-list" class="space-y-2"></div>
           </section>
         </div>
       </aside>
