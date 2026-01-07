@@ -131,11 +131,10 @@ html, body {
   white-space: nowrap;
 }
 
-/* Legend pill */
 .legend-pill{
   position: fixed;
+  top: 96px;
   left: 12px;
-  top: 78px;
   z-index: 100000;
 
   display: inline-flex;
@@ -154,41 +153,9 @@ html, body {
   pointer-events: auto;
 }
 
-@media (min-width: 768px){
-  .legend-pill{ top: 108px; }
-}
-
-.legend-pill .dot{
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  display: inline-block;
-}
-
-.legend-pill .dot-black{
-  background:#0b0b0f;
-  outline:1px solid rgba(255,255,255,.18);
-}
-
-.legend-pill .dot-red{
-  background:#ef4444;
-}
-
-.legend-pill .dot-purple{
-  background:#a855f7;
-  outline:1px solid rgba(0,0,0,.25);
-}
-
-}
-
-.legend-pill .sep{
-  opacity:.6;
-}@media (max-width: 767px){
+@media (max-width: 767px){
   .legend-pill{
     left: 50%;
-    right: auto;
     transform: translateX(-50%);
-    top: 78px; /* tweak if you want it higher/lower */
   }
 }
-
