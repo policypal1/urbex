@@ -22,9 +22,6 @@
         referrerpolicy="no-referrer-when-downgrade"
         src="https://www.google.com/maps/d/u/0/embed?mid=1MOYgFpi4sJJcnl8laOGAkyyL14zJBFA"
       ></iframe>
-
-      <!-- Privacy bar to cover your name + My Maps header -->
-      <div class="privacy-bar" aria-hidden="true"></div>
     </div>
 
     <!-- UI LAYER -->
@@ -47,12 +44,27 @@
         </div>
       </header>
 
-      <!-- Mobile top bar (no buttons now) -->
+      <!-- Mobile top bar -->
       <div class="md:hidden mobile-topbar">
-        <div class="mobile-title">SALEM URBEX</div>
+        <div class="mobile-title">SALEM ATLAS</div>
+      </div>
+
+      <!-- Legend pill (mobile only) -->
+      <div class="legend-pill md:hidden" role="note" aria-label="Legend">
+        <span class="dot dot-black" aria-hidden="true"></span>
+        <span>Urbex</span>
+        <span class="sep">·</span>
+
+        <span class="dot dot-red" aria-hidden="true"></span>
+        <span>Roofing</span>
+        <span class="sep">·</span>
+
+        <span class="dot dot-purple" aria-hidden="true"></span>
+        <span>Construction</span>
       </div>
 
     </div>
   </div>
 </body>
 </html>
+
