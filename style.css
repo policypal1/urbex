@@ -97,9 +97,11 @@ html, body {
   font: 800 12px/1 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
 
-.badge-green{
-  border-color: rgba(34,197,94,0.9);
-  color: rgba(134,239,172,1);
+.badge-purple{
+  border-color: rgba(168,85,247,0.95);
+  color: rgba(216,180,254,1);
+}
+
 }
 
 /* Mobile top bar (simple, not funky) */
@@ -172,9 +174,11 @@ html, body {
   background:#ef4444;
 }
 
-.legend-pill .dot-green{
-  background:#22c55e;
+.legend-pill .dot-purple{
+  background:#a855f7;
   outline:1px solid rgba(0,0,0,.25);
+}
+
 }
 
 .legend-pill .sep{
