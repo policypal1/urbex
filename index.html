@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>NightLoom Atlas · Salem</title>
+  <title>Salem Atlas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <script src="https://cdn.tailwindcss.com"></script>
@@ -27,39 +27,17 @@
     <!-- UI LAYER -->
     <div class="ui-layer">
 
-      <!-- Desktop header -->
-      <header class="hidden md:flex desktop-header">
-        <div class="flex items-center gap-3">
-          <div class="brand-mark" aria-hidden="true"></div>
-          <div class="leading-tight">
-            <div class="brand-title">Salem Atlas</div>
-            <div class="brand-sub">Private spot tracker · Salem area</div>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <span class="badge">Urbex ⚫</span>
-          <span class="badge">Roofing 🔴</span>
-          <span class="badge badge-purple">Construction 🟣</span>
-        </div>
-      </header>
-
-      <!-- Mobile top bar -->
-      <div class="md:hidden mobile-topbar">
-        <div class="mobile-title">SALEM ATLAS</div>
-      </div>
-
-      <!-- Legend pill (mobile only) -->
-      <div class="legend-pill md:hidden" role="note" aria-label="Legend">
-        <span class="dot dot-black" aria-hidden="true"></span>
+      <!-- Legend pill (ONLY UI element) -->
+      <div class="legend-pill" role="note" aria-label="Legend">
+        <span class="dot dot-black"></span>
         <span>Urbex</span>
         <span class="sep">·</span>
 
-        <span class="dot dot-red" aria-hidden="true"></span>
+        <span class="dot dot-red"></span>
         <span>Roofing</span>
         <span class="sep">·</span>
 
-        <span class="dot dot-purple" aria-hidden="true"></span>
+        <span class="dot dot-purple"></span>
         <span>Construction</span>
       </div>
 
@@ -67,4 +45,3 @@
   </div>
 </body>
 </html>
-
